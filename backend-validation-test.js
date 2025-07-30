@@ -1,6 +1,6 @@
 /**
  * Backend Validation Test for Swiss Rent vs Buy Calculator
- * Tests calculation accuracy against moneyland.ch source of truth data
+ * Tests calculation accuracy against static data example
  * 
  * This script validates our JavaScript calculations against all rows in output-002.csv
  * without requiring browser/UI testing - pure backend mathematical validation.

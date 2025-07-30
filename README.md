@@ -300,7 +300,7 @@ const sweepRanges = {
 ### Development Setup
 ```bash
 # Fork and clone the repository
-git clone https://github.com/yourusername/swiss-rent-buy-calculator.git
+git clone https://github.com/d57udy/swiss-rent-buy-calculator.git
 
 # Create feature branch
 git checkout -b feature/new-functionality
