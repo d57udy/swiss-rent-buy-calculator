@@ -228,7 +228,7 @@ node random-sample-validation.js
 ```bash
 # Enable GitHub Pages in repository settings
 # Select source: main branch
-# Access at: https://username.github.io/repository-name
+# Access at: https://github.com/d57udy/swiss-rent-buy-calculator
 ```
 
 ### Local Hosting
