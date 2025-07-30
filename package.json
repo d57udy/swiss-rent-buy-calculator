@@ -1,0 +1,45 @@
+{
+  "name": "swiss-rent-buy-calculator",
+  "version": "2.1.0",
+  "description": "A comprehensive financial calculator for Swiss real estate rent vs buy decisions",
+  "main": "calculator.js",
+  "scripts": {
+    "test": "node backend-validation-test.js",
+    "test:comprehensive": "node comprehensive-test-runner.js",
+    "serve": "python -m http.server 8000",
+    "start": "open index.html"
+  },
+  "keywords": [
+    "swiss",
+    "real-estate",
+    "rent",
+    "buy",
+    "calculator",
+    "mortgage",
+    "finance",
+    "property",
+    "investment"
+  ],
+  "author": "d57udy",
+  "license": "CC-BY-SA-4.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/swiss-rent-buy-calculator.git"
+  },
+  "homepage": "https://yourusername.github.io/swiss-rent-buy-calculator",
+  "bugs": {
+    "url": "https://github.com/yourusername/swiss-rent-buy-calculator/issues"
+  },
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "files": [
+    "index.html",
+    "calculator.js",
+    "backend-validation-test.js",
+    "comprehensive-test-runner.js",
+    "output-002.csv",
+    "README.md",
+    "LICENSE"
+  ]
+}
