@@ -372,19 +372,47 @@
                 
                 <div class="input-group">
                     <div class="input-label">
-                        Down Payment
+                        Down Payment / Mortgage Configuration
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">The amount of equity you invest upfront. In Switzerland, typically 20% minimum is required, with at least 10% from your own funds.</span>
+                            <span class="tooltiptext">Choose how to specify your financing: either set the down payment directly, calculate it automatically (20%), or maximize your mortgage up to a specified limit while maintaining the mandatory 20% minimum down payment.</span>
                         </div>
                     </div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="autoDownPayment" checked>
-                        <label for="autoDownPayment">Calculate automatically (20% of purchase price)</label>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div class="checkbox-container">
+                            <input type="radio" id="autoDownPayment" name="downPaymentMode" value="auto" checked>
+                            <label for="autoDownPayment">Calculate down payment automatically (20% of purchase price)</label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="radio" id="manualDownPayment" name="downPaymentMode" value="manual">
+                            <label for="manualDownPayment">Specify down payment manually</label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="radio" id="mortgageAmountMode" name="downPaymentMode" value="mortgage">
+                            <label for="mortgageAmountMode">Maximize mortgage up to specified limit
+                                <div class="tooltip" style="margin-left: 5px;">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltiptext">Sets the mortgage amount to your specified maximum, unless doing so would result in a down payment below 20% of the purchase price. In that case, the down payment is set to exactly 20% and the mortgage is reduced accordingly. Formula: Down Payment = max(20% × Purchase Price, Purchase Price - Max Mortgage)</span>
+                                </div>
+                            </label>
+                        </div>
                     </div>
-                    <div class="input-container">
+                    
+                    <div class="input-container" id="downPaymentInput">
+                        <label>Down Payment:</label>
                         <input type="number" id="downPayment" value="400000" step="1000" min="0" disabled>
                         <span class="unit">CHF</span>
+                    </div>
+                    
+                    <div class="input-container" id="mortgageAmountInput" style="display: none;">
+                        <label>Maximum Mortgage Amount:</label>
+                        <input type="number" id="mortgageAmount" value="1600000" step="1000" min="0">
+                        <span class="unit">CHF</span>
+                    </div>
+                    
+                    <div id="downPaymentWarning" style="display: none; margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 6px; color: #856404; font-size: 14px;">
+                        <strong>Warning:</strong> Down payment is below 20% minimum. Adjusting to 20%.
                     </div>
                 </div>
                 
@@ -393,15 +421,11 @@
                         Additional Purchase Costs
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">Additional costs when buying: notary fees, land registry, real estate agent commission, taxes. Typically 1-3% of purchase price.</span>
+                            <span class="tooltiptext">Additional costs when buying: notary fees, land registry, real estate agent commission, taxes.</span>
                         </div>
                     </div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="autoAdditionalCosts" checked>
-                        <label for="autoAdditionalCosts">Calculate automatically (2% of purchase price)</label>
-                    </div>
                     <div class="input-container">
-                        <input type="number" id="additionalPurchaseCosts" value="40000" step="1000" min="0" disabled>
+                        <input type="number" id="additionalPurchaseCosts" value="1000" step="1000" min="0">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
@@ -458,13 +482,30 @@
                         Annual Amortization Amount
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">Annual amount paid to reduce mortgage principal. Calculated as mortgage amount divided by amortization period.</span>
+                            <span class="tooltiptext">Annual amount paid to reduce mortgage principal. Choose calculation method below.</span>
                         </div>
                     </div>
-                    <div class="checkbox-container">
-                        <input type="checkbox" id="autoAmortization" checked>
-                        <label for="autoAmortization">Calculate automatically (mortgage ÷ amortization period)</label>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div class="checkbox-container">
+                            <input type="radio" id="autoAmortization" name="amortizationMode" value="auto" checked>
+                            <label for="autoAmortization">Calculate automatically (mortgage ÷ amortization period)</label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="radio" id="swissAmortization" name="amortizationMode" value="swiss">
+                            <label for="swissAmortization">Swiss regulation: amortize to 65% LTV within 15 years
+                                <div class="tooltip" style="margin-left: 5px;">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltiptext">Swiss mortgage regulations require that mortgages above 65% LTV (second mortgage) must be amortized down to 65% within 15 years. This calculates the minimum required annual amortization to comply with Swiss banking regulations. If your LTV is already 65% or below, no mandatory amortization is required.</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="radio" id="manualAmortization" name="amortizationMode" value="manual">
+                            <label for="manualAmortization">Specify amortization amount manually</label>
+                        </div>
                     </div>
+                    
                     <div class="input-container">
                         <input type="number" id="annualAmortization" value="32000" step="1000" min="0" disabled>
                         <span class="unit">CHF per year</span>
@@ -554,7 +595,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="marginalTaxRate" value="23.6" step="0.1" min="0" max="50">
+                        <input type="number" id="marginalTaxRate" value="30.0" step="0.1" min="0" max="50">
                         <span class="unit">%</span>
                     </div>
                 </div>
@@ -634,50 +675,15 @@
         <!-- Max Bid Finder Tab -->
         <div class="tab-content" id="breakeven">
             <div style="margin-bottom: 20px; padding: 15px; background: #f9f9f9; border-radius: 8px; border-left: 4px solid #007aff;">
-                <p style="margin: 0; color: #1d1d1f; line-height: 1.5;">Find the maximum price you should bid for a property to break even with renting. This tool uses binary search to identify the purchase price where buying and renting have equal total costs, helping you set realistic bidding limits.</p>
+                <p style="margin: 0; color: #1d1d1f; line-height: 1.5;">Find the maximum price you should bid for a property to break even with renting. This tool uses all your detailed parameters from the single calculation to find the purchase price where buying and renting have equal total costs.</p>
             </div>
+            
+            <div style="margin-bottom: 20px; padding: 15px; background: #fff3cd; border-radius: 8px; border-left: 4px solid #ffc107;">
+                <p style="margin: 0; color: #856404; line-height: 1.5;"><strong>How it works:</strong> This tool copies all your detailed parameters from the Single Calculation tab and searches for the maximum purchase price where the financial benefit equals zero (break-even point). Only adjust the search parameters below if needed.</p>
+            </div>
+            
             <div class="form-section">
-                <h3>Search Parameters</h3>
-                
-                <div class="input-group">
-                    <div class="input-label">Monthly Rent</div>
-                    <div class="input-container">
-                        <input type="number" id="beMonthlyRent" value="5500" step="100">
-                        <span class="unit">CHF</span>
-                    </div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="input-label">Mortgage Rate</div>
-                    <div class="input-container">
-                        <input type="number" id="beMortgageRate" value="0.9" step="0.1" min="0">
-                        <span class="unit">%</span>
-                    </div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="input-label">Property Appreciation</div>
-                    <div class="input-container">
-                        <input type="number" id="bePropertyAppreciation" value="1.0" step="0.1">
-                        <span class="unit">% per year</span>
-                    </div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="input-label">Investment Yield</div>
-                    <div class="input-container">
-                        <input type="number" id="beInvestmentYield" value="3.5" step="0.1">
-                        <span class="unit">% per year</span>
-                    </div>
-                </div>
-                
-                <div class="input-group">
-                    <div class="input-label">Fixed Mortgage Amount</div>
-                    <div class="input-container">
-                        <input type="number" id="beMortgageAmount" value="1653000" step="1000">
-                        <span class="unit">CHF</span>
-                    </div>
-                </div>
+                <h3>Search Configuration</h3>
                 
                 <div class="input-group">
                     <div class="input-label">Min Search Price</div>
@@ -690,13 +696,13 @@
                 <div class="input-group">
                     <div class="input-label">Max Search Price</div>
                     <div class="input-container">
-                        <input type="number" id="beMaxPrice" value="3000000" step="10000">
+                        <input type="number" id="beMaxPrice" value="10000000" step="10000">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
                 
                 <div class="input-group">
-                    <div class="input-label">Tolerance</div>
+                    <div class="input-label">Search Tolerance</div>
                     <div class="input-container">
                         <input type="number" id="beTolerance" value="2500" step="500">
                         <span class="unit">CHF</span>
@@ -918,24 +924,61 @@
         function updateCalculatedFields() {
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
             const monthlyRent = parseFloat(document.getElementById('monthlyRent').value) || 0;
-            const mortgageAmount = purchasePrice - (parseFloat(document.getElementById('downPayment').value) || 0);
             const amortizationYears = parseFloat(document.getElementById('amortizationYears').value) || 10;
             
-            // Auto down payment (20%)
-            if (document.getElementById('autoDownPayment').checked) {
-                document.getElementById('downPayment').value = Math.round(purchasePrice * 0.2);
+            // Handle down payment modes
+            const downPaymentMode = document.querySelector('input[name="downPaymentMode"]:checked').value;
+            let downPayment = 0;
+            let actualMortgageAmount = 0;
+            let showWarning = false;
+            
+            if (downPaymentMode === 'auto') {
+                // Auto down payment (20%)
+                downPayment = Math.round(purchasePrice * 0.2);
+                document.getElementById('downPayment').value = downPayment;
                 document.getElementById('downPayment').disabled = true;
-            } else {
+                document.getElementById('downPaymentInput').style.display = 'block';
+                document.getElementById('mortgageAmountInput').style.display = 'none';
+            } else if (downPaymentMode === 'manual') {
+                // Manual down payment with 20% minimum validation
+                downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+                const minDownPayment = Math.round(purchasePrice * 0.2);
+                if (downPayment < minDownPayment && purchasePrice > 0) {
+                    downPayment = minDownPayment;
+                    document.getElementById('downPayment').value = downPayment;
+                    showWarning = true;
+                }
                 document.getElementById('downPayment').disabled = false;
+                document.getElementById('downPaymentInput').style.display = 'block';
+                document.getElementById('mortgageAmountInput').style.display = 'none';
+            } else if (downPaymentMode === 'mortgage') {
+                // Maximize mortgage up to specified limit, respecting 20% minimum down payment
+                const maxMortgageLimit = parseFloat(document.getElementById('mortgageAmount').value) || 0;
+                const minDownPayment = Math.round(purchasePrice * 0.2);
+                const maxPossibleMortgage = purchasePrice - minDownPayment;
+                
+                // Use the smaller of: user's limit or what's possible with 20% down payment
+                actualMortgageAmount = Math.min(maxMortgageLimit, maxPossibleMortgage);
+                downPayment = purchasePrice - actualMortgageAmount;
+                
+                // Ensure we never go below 20% down payment
+                if (downPayment < minDownPayment && purchasePrice > 0) {
+                    downPayment = minDownPayment;
+                    actualMortgageAmount = purchasePrice - downPayment;
+                    showWarning = true;
+                }
+                
+                document.getElementById('downPayment').value = downPayment;
+                document.getElementById('downPayment').disabled = true;
+                document.getElementById('downPaymentInput').style.display = 'block';
+                document.getElementById('mortgageAmountInput').style.display = 'block';
             }
             
-            // Auto additional costs (2%)
-            if (document.getElementById('autoAdditionalCosts').checked) {
-                document.getElementById('additionalPurchaseCosts').value = Math.round(purchasePrice * 0.02);
-                document.getElementById('additionalPurchaseCosts').disabled = true;
-            } else {
-                document.getElementById('additionalPurchaseCosts').disabled = false;
-            }
+            // Show/hide warning
+            document.getElementById('downPaymentWarning').style.display = showWarning ? 'block' : 'none';
+            
+            // Calculate final mortgage amount for other calculations
+            const finalMortgageAmount = purchasePrice - downPayment;
             
             // Auto maintenance (1.25%)
             if (document.getElementById('autoMaintenance').checked) {
@@ -945,12 +988,32 @@
                 document.getElementById('annualMaintenanceCosts').disabled = false;
             }
             
-            // Auto amortization
-            if (document.getElementById('autoAmortization').checked) {
-                const currentMortgage = purchasePrice - (parseFloat(document.getElementById('downPayment').value) || 0);
-                document.getElementById('annualAmortization').value = Math.round(currentMortgage / amortizationYears);
+            // Handle amortization modes
+            const amortizationMode = document.querySelector('input[name="amortizationMode"]:checked').value;
+            
+            if (amortizationMode === 'auto') {
+                // Standard calculation: mortgage ÷ amortization period
+                document.getElementById('annualAmortization').value = Math.round(finalMortgageAmount / amortizationYears);
+                document.getElementById('annualAmortization').disabled = true;
+            } else if (amortizationMode === 'swiss') {
+                // Swiss regulation: amortize to 65% LTV within 15 years
+                const currentLTV = finalMortgageAmount / purchasePrice;
+                const targetLTV = 0.65;
+                
+                if (currentLTV > targetLTV) {
+                    // Calculate amount needed to amortize down to 65% LTV
+                    const targetMortgageAmount = purchasePrice * targetLTV;
+                    const amortizationNeeded = finalMortgageAmount - targetMortgageAmount;
+                    // Divide by 15 years (Swiss regulation requirement)
+                    const swissAnnualAmortization = Math.round(amortizationNeeded / 15);
+                    document.getElementById('annualAmortization').value = swissAnnualAmortization;
+                } else {
+                    // If already at or below 65% LTV, no mandatory amortization required
+                    document.getElementById('annualAmortization').value = 0;
+                }
                 document.getElementById('annualAmortization').disabled = true;
             } else {
+                // Manual mode
                 document.getElementById('annualAmortization').disabled = false;
             }
             
@@ -979,11 +1042,20 @@
         // Auto-calculation event listeners
         document.getElementById('purchasePrice').addEventListener('input', updateCalculatedFields);
         document.getElementById('downPayment').addEventListener('input', updateCalculatedFields);
+        document.getElementById('mortgageAmount').addEventListener('input', updateCalculatedFields);
         document.getElementById('monthlyRent').addEventListener('input', updateCalculatedFields);
         document.getElementById('amortizationYears').addEventListener('input', updateCalculatedFields);
         
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', updateCalculatedFields);
+        });
+        
+        document.querySelectorAll('input[name="downPaymentMode"]').forEach(radio => {
+            radio.addEventListener('change', updateCalculatedFields);
+        });
+        
+        document.querySelectorAll('input[name="amortizationMode"]').forEach(radio => {
+            radio.addEventListener('change', updateCalculatedFields);
         });
 
         // Single calculation
@@ -1041,6 +1113,27 @@
                     <span>Interest Costs (${result.TermYears} years):</span>
                     <span>CHF ${Math.round(result.InterestCosts).toLocaleString()}</span>
                 </div>
+                
+                <div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007aff;">
+                    <h4 style="margin: 0 0 15px 0; color: #007aff; font-size: 16px;">Monthly Expenses when Buying:</h4>
+                    <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;">
+                        <span>Monthly Interest Payment:</span>
+                        <span>CHF ${result.MonthlyInterestPayment.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;">
+                        <span>Monthly Mortgage Amortization:</span>
+                        <span>CHF ${result.MonthlyAmortizationPayment.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;">
+                        <span>Monthly Maintenance Costs:</span>
+                        <span>CHF ${result.MonthlyMaintenanceCosts.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item" style="font-weight: 600; color: #007aff; border-bottom: none;">
+                        <span>Total Monthly Expenses:</span>
+                        <span>CHF ${result.TotalMonthlyExpenses.toLocaleString()}</span>
+                    </div>
+                </div>
+                
                 <div class="result-item">
                     <span>Total Purchase Cost:</span>
                     <span>CHF ${Math.round(result.TotalPurchaseCost).toLocaleString()}</span>
@@ -1053,65 +1146,229 @@
             resultsDiv.style.display = 'block';
         }
 
+        // Helper function to calculate auto-fields based on a test purchase price
+        function getParametersWithAutoCalculations(testPurchasePrice) {
+            const monthlyRent = parseFloat(document.getElementById('monthlyRent').value);
+            const amortizationYears = parseInt(document.getElementById('amortizationYears').value);
+            
+            // Start with base parameters
+            const params = {
+                purchasePrice: testPurchasePrice,
+                mortgageRate: parseFloat(document.getElementById('mortgageRate').value) / 100,
+                monthlyRent: monthlyRent,
+                propertyAppreciationRate: parseFloat(document.getElementById('propertyAppreciation').value) / 100,
+                investmentYieldRate: parseFloat(document.getElementById('investmentYield').value) / 100,
+                marginalTaxRate: parseFloat(document.getElementById('marginalTaxRate').value) / 100,
+                termYears: parseInt(document.getElementById('termYears').value),
+                amortizationYears: amortizationYears,
+                totalRenovations: parseFloat(document.getElementById('totalRenovations').value),
+                propertyTaxDeductions: parseFloat(document.getElementById('propertyTaxDeductions').value),
+                annualRentalCosts: parseFloat(document.getElementById('annualRentalCosts').value),
+                additionalPurchaseCosts: parseFloat(document.getElementById('additionalPurchaseCosts').value)
+            };
+            
+            // Handle down payment modes with 20% minimum enforcement
+            const downPaymentMode = document.querySelector('input[name="downPaymentMode"]:checked').value;
+            let downPayment = 0;
+            
+            if (downPaymentMode === 'auto') {
+                // Auto down payment (20%)
+                downPayment = Math.round(testPurchasePrice * 0.2);
+            } else if (downPaymentMode === 'manual') {
+                // Manual down payment with 20% minimum validation
+                downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
+                const minDownPayment = Math.round(testPurchasePrice * 0.2);
+                if (downPayment < minDownPayment) {
+                    downPayment = minDownPayment;
+                }
+            } else if (downPaymentMode === 'mortgage') {
+                // Maximize mortgage up to specified limit, respecting 20% minimum down payment
+                const maxMortgageLimit = parseFloat(document.getElementById('mortgageAmount').value) || 0;
+                const minDownPayment = Math.round(testPurchasePrice * 0.2);
+                const maxPossibleMortgage = testPurchasePrice - minDownPayment;
+                
+                // Use the smaller of: user's limit or what's possible with 20% down payment
+                const actualMortgageAmount = Math.min(maxMortgageLimit, maxPossibleMortgage);
+                downPayment = testPurchasePrice - actualMortgageAmount;
+                
+                // Ensure we never go below 20% down payment
+                if (downPayment < minDownPayment) {
+                    downPayment = minDownPayment;
+                }
+            }
+            
+            params.downPayment = downPayment;
+            
+            // Handle auto-calculated fields based on checkbox states
+            if (document.getElementById('autoMaintenance').checked) {
+                params.annualMaintenanceCosts = Math.round(testPurchasePrice * 0.0125);
+            } else {
+                params.annualMaintenanceCosts = parseFloat(document.getElementById('annualMaintenanceCosts').value);
+            }
+            
+            // Handle amortization modes
+            const amortizationMode = document.querySelector('input[name="amortizationMode"]:checked').value;
+            const mortgageAmount = testPurchasePrice - params.downPayment;
+            
+            if (amortizationMode === 'auto') {
+                params.annualAmortization = Math.round(mortgageAmount / amortizationYears);
+            } else if (amortizationMode === 'swiss') {
+                // Swiss regulation: amortize to 65% LTV within 15 years
+                const currentLTV = mortgageAmount / testPurchasePrice;
+                const targetLTV = 0.65;
+                
+                if (currentLTV > targetLTV) {
+                    const targetMortgageAmount = testPurchasePrice * targetLTV;
+                    const amortizationNeeded = mortgageAmount - targetMortgageAmount;
+                    params.annualAmortization = Math.round(amortizationNeeded / 15);
+                } else {
+                    params.annualAmortization = 0;
+                }
+            } else {
+                params.annualAmortization = parseFloat(document.getElementById('annualAmortization').value);
+            }
+            
+            if (document.getElementById('autoImputedRental').checked) {
+                params.imputedRentalValue = Math.round(monthlyRent * 12 * 0.65);
+            } else {
+                params.imputedRentalValue = parseFloat(document.getElementById('imputedRentalValue').value);
+            }
+            
+            return params;
+        }
+
         // Break-even finder
         document.getElementById('breakevenBtn').addEventListener('click', () => {
-            const mortgageAmount = parseFloat(document.getElementById('beMortgageAmount').value);
-            const params = {
-                monthlyRent: parseFloat(document.getElementById('beMonthlyRent').value),
-                mortgageRate: parseFloat(document.getElementById('beMortgageRate').value) / 100,
-                propertyAppreciationRate: parseFloat(document.getElementById('bePropertyAppreciation').value) / 100,
-                investmentYieldRate: parseFloat(document.getElementById('beInvestmentYield').value) / 100,
-                marginalTaxRate: 0.236,
-                termYears: 10,
-                mortgageAmount: mortgageAmount,
-                annualMaintenanceCosts: 25000,
-                amortizationYears: 10,
-                annualAmortization: 22199,
-                totalRenovations: 0,
-                additionalPurchaseCosts: 0,
-                propertyTaxDeductions: 13000,
-                annualRentalCosts: 20000
-            };
-
-            params.imputedRentalValue = Math.round(0.65 * 12 * params.monthlyRent);
-
+            // Create a custom findBreakevenPrice that handles auto-calculations
             const options = {
                 minPrice: parseFloat(document.getElementById('beMinPrice').value),
                 maxPrice: parseFloat(document.getElementById('beMaxPrice').value),
                 tolerance: parseFloat(document.getElementById('beTolerance').value)
             };
-
-            const result = SwissRentBuyCalculator.findBreakevenPrice(params, options);
-            displayBreakevenResult(result);
+            
+            // Store original purchase price for comparison
+            const originalPurchasePrice = parseFloat(document.getElementById('purchasePrice').value);
+            
+            // Custom binary search with proper auto-calculations
+            let low = options.minPrice;
+            let high = options.maxPrice;
+            let iterations = 0;
+            let bestResult = null;
+            let bestDifference = Infinity;
+            const tolerance = options.tolerance;
+            const maxIterations = 1000;
+            
+            while (low <= high && iterations < maxIterations) {
+                const testPrice = Math.round((low + high) / 2);
+                const params = getParametersWithAutoCalculations(testPrice);
+                
+                const result = SwissRentBuyCalculator.calculate(params);
+                const difference = Math.abs(result.ResultValue);
+                
+                if (difference < bestDifference) {
+                    bestDifference = difference;
+                    bestResult = {
+                        breakevenFound: difference <= tolerance,
+                        breakevenPrice: testPrice,
+                        resultValue: result.ResultValue,
+                        decision: result.Decision,
+                        difference: difference,
+                        originalPrice: originalPurchasePrice,
+                        priceDifference: testPrice - originalPurchasePrice
+                    };
+                }
+                
+                if (difference <= tolerance) {
+                    break;
+                }
+                
+                if (result.ResultValue > 0) {
+                    low = testPrice + 1;
+                } else {
+                    high = testPrice - 1;
+                }
+                
+                iterations++;
+            }
+            
+            if (bestResult) {
+                bestResult.iterations = iterations;
+                bestResult.message = bestResult.breakevenFound ? 
+                    `Break-even found at ${bestResult.breakevenPrice.toLocaleString()} CHF` :
+                    `Closest match found at ${bestResult.breakevenPrice.toLocaleString()} CHF (difference: ${bestResult.difference.toLocaleString()} CHF)`;
+            }
+            
+            displayBreakevenResult(bestResult || {
+                breakevenFound: false,
+                message: `No break-even found in range ${options.minPrice.toLocaleString()}-${options.maxPrice.toLocaleString()} CHF`,
+                iterations: iterations
+            });
         });
 
         function displayBreakevenResult(result) {
             const resultsDiv = document.getElementById('breakevenResults');
             
             if (result.breakevenFound) {
+                // Get detailed calculation with proper auto-calculations for the found price
+                const detailedParams = getParametersWithAutoCalculations(result.breakevenPrice);
+                const detailedResult = SwissRentBuyCalculator.calculate(detailedParams);
+                
+                // Calculate price difference information
+                const priceDifference = result.priceDifference;
+                const priceDifferenceText = priceDifference > 0 ? 
+                    `CHF ${Math.abs(priceDifference).toLocaleString()} higher than current single calc price` :
+                    `CHF ${Math.abs(priceDifference).toLocaleString()} lower than current single calc price`;
+                
                 resultsDiv.innerHTML = `
+                    <div style="margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; border-left: 4px solid #34c759;">
+                        <div class="result-item decision-even" style="font-size: 18px; font-weight: 600; margin-bottom: 10px; border-bottom: none;">
+                            <span>Maximum Bid Price Found</span>
+                            <span>CHF ${result.breakevenPrice.toLocaleString()}</span>
+                        </div>
+                        <div style="font-size: 16px; line-height: 1.4;">
+                            <strong>At this price, buying and renting have equal total costs (break-even point)</strong><br>
+                            <small>Break-even accuracy: ±CHF ${Math.abs(result.resultValue).toLocaleString()} (${result.iterations} iterations)</small><br>
+                            <small>Price difference: ${priceDifferenceText}</small>
+                        </div>
+                    </div>
+                    
+                    <h4>Detailed Calculation Results at Maximum Bid Price</h4>
+                    
                     <div class="result-item">
-                        <span>Max Bid Price:</span>
-                        <span>CHF ${result.breakevenPrice.toLocaleString()}</span>
+                        <span>Purchase Price:</span>
+                        <span>CHF ${detailedResult.PurchasePrice.toLocaleString()}</span>
                     </div>
                     <div class="result-item">
-                        <span>Required Down Payment:</span>
-                        <span>CHF ${result.downPayment.toLocaleString()}</span>
+                        <span>Down Payment:</span>
+                        <span>CHF ${detailedResult.DownPayment.toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Mortgage Amount:</span>
+                        <span>CHF ${detailedResult.MortgageAmount.toLocaleString()}</span>
                     </div>
                     <div class="result-item">
                         <span>Loan-to-Value Ratio:</span>
-                        <span>${result.ltvPercent.toFixed(1)}%</span>
+                        <span>${((detailedResult.MortgageAmount / detailedResult.PurchasePrice) * 100).toFixed(1)}%</span>
                     </div>
                     <div class="result-item">
-                        <span>NPV Difference:</span>
-                        <span>CHF ${Math.round(result.resultValue).toLocaleString()}</span>
+                        <span>Interest Costs (${detailedResult.TermYears} years):</span>
+                        <span>CHF ${Math.round(detailedResult.InterestCosts).toLocaleString()}</span>
                     </div>
                     <div class="result-item">
-                        <span>Search Iterations:</span>
-                        <span>${result.iterations}</span>
+                        <span>Total Purchase Cost:</span>
+                        <span>CHF ${Math.round(detailedResult.TotalPurchaseCost).toLocaleString()}</span>
                     </div>
-                    <div style="margin-top: 15px; padding: 15px; background: white; border-radius: 8px;">
-                        <strong>${result.message}</strong>
+                    <div class="result-item">
+                        <span>Total Rental Cost:</span>
+                        <span>CHF ${Math.round(detailedResult.TotalRentalCost).toLocaleString()}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Net Financial Benefit:</span>
+                        <span>CHF ${Math.round(detailedResult.ResultValue).toLocaleString()}</span>
+                    </div>
+                    
+                    <div style="margin-top: 20px; padding: 15px; background: #e8f5e8; border-radius: 8px; border-left: 4px solid #28a745;">
+                        <strong>Verification:</strong> If you enter CHF ${result.breakevenPrice.toLocaleString()} as the purchase price in the Single Calculation tab, the financial benefit should be approximately CHF ${Math.round(detailedResult.ResultValue).toLocaleString()} (very close to zero).
                     </div>
                 `;
             } else {
@@ -1119,6 +1376,7 @@
                     <div style="padding: 15px; background: rgba(255, 59, 48, 0.1); border-radius: 8px; color: #ff3b30;">
                         <strong>${result.message}</strong>
                         <br>Search completed in ${result.iterations} iterations.
+                        <br><br>Try adjusting the search price range or check your input parameters.
                     </div>
                 `;
             }

@@ -234,6 +234,12 @@ class SwissRentBuyCalculator {
             compareText = "Buying and renting have the same cost over the relevant time frame.";
         }
         
+        // Calculate monthly expenses for buying scenario
+        const monthlyInterestPayment = Math.round((mortgageAmount * mortgageRate) / 12);
+        const monthlyAmortizationPayment = Math.round(annualAmortization / 12);
+        const monthlyMaintenanceCosts = Math.round(annualMaintenanceCosts / 12);
+        const totalMonthlyExpenses = monthlyInterestPayment + monthlyAmortizationPayment + monthlyMaintenanceCosts;
+
         return {
             // Input parameters
             PurchasePrice: Math.round(purchasePrice),
@@ -270,6 +276,12 @@ class SwissRentBuyCalculator {
             MinusPropertyValue: -propertyValueEnd,
             MortgageAtEndOfRelevantTimePeriod: mortgageAtEnd,
             TotalPurchaseCost: totalPurchaseCost,
+            
+            // Monthly expenses for buying scenario
+            MonthlyInterestPayment: monthlyInterestPayment,
+            MonthlyAmortizationPayment: monthlyAmortizationPayment,
+            MonthlyMaintenanceCosts: monthlyMaintenanceCosts,
+            TotalMonthlyExpenses: totalMonthlyExpenses,
             
             // Rental cost breakdown
             GeneralCostOfRental: generalCostOfRental,
@@ -481,7 +493,7 @@ class SwissRentBuyCalculator {
                     // Escape string values that contain commas
                     // This prevents CSV parsing errors
                     if (typeof value === 'string' && value.includes(',')) {
-                        return `"${value}";  // Wrap in quotes
+                        return `"${value}"`; // Wrap in quotes
                     }
                     
                     return value; // Return as-is for numbers and simple strings
