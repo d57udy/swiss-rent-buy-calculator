@@ -500,7 +500,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="additionalPurchaseCosts" value="1000" step="1000" min="0">
+                        <input type="number" id="additionalPurchaseCosts" value="5000" step="1000" min="0">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
@@ -828,7 +828,6 @@
             
             <div style="margin-bottom: 20px;">
                 <button class="button" id="sweepBtn">Run Parameter Sweep</button>
-                <button class="button secondary" id="downloadCsvBtn" style="margin-left: 10px; display: none;">Download CSV</button>
             </div>
             
             <div id="sweepResults"></div>
@@ -1615,11 +1614,27 @@
                         }
                         
                         // Store the result
+                        // Calculate monthly costs for this combination using current purchase price
+                        let monthlyExpenses = null;
+                        try {
+                            const currentPurchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 2000000;
+                            const paramsForMonthly = getParametersWithAutoCalculations(currentPurchasePrice);
+                            paramsForMonthly.propertyAppreciationRate = propRate;
+                            paramsForMonthly.investmentYieldRate = invRate;
+                            paramsForMonthly.mortgageRate = mortRate;
+                            
+                            const monthlyResult = SwissRentBuyCalculator.calculate(paramsForMonthly);
+                            monthlyExpenses = monthlyResult.TotalMonthlyExpenses;
+                        } catch (error) {
+                            console.warn('Error calculating monthly expenses:', error);
+                        }
+
                         results.push({
                             propertyAppreciationRate: propRate,
                             investmentYieldRate: invRate,
                             mortgageRate: mortRate,
                             maxBidPrice: maxBidPrice,
+                            monthlyExpenses: monthlyExpenses,
                             propertyAppreciationPercent: (propRate * 100).toFixed(1),
                             investmentYieldPercent: (invRate * 100).toFixed(1),
                             mortgageRatePercent: (mortRate * 100).toFixed(1)
@@ -1698,7 +1713,8 @@
                     sweepData = runMaxBidPriceSweep(baseParams, sweepRanges);
                     displaySweepResults(sweepData);
                     
-                    document.getElementById('downloadCsvBtn').style.display = 'inline-block';
+                    // Set up CSV download buttons after results are displayed
+                    setupCsvDownloadButtons();
                 } catch (error) {
                     resultsDiv.innerHTML = `<div style="color: #ff3b30;">Error: ${error.message}</div>`;
                 } finally {
@@ -1707,6 +1723,92 @@
                 }
             }, 100);
         });
+
+        function createMonthlyExpenseTable(data, propRates, invRates, mortRates, currentPurchasePrice) {
+            // Get unique monthly expenses for each mortgage rate (they should all be the same regardless of other parameters)
+            const monthlyExpensesByMortRate = {};
+            
+            mortRates.forEach(mortRate => {
+                // Find any result with this mortgage rate to get the monthly expense
+                const result = data.find(d => Math.abs(d.mortgageRate - mortRate) < 0.001);
+                if (result && result.monthlyExpenses !== null && result.monthlyExpenses > 0) {
+                    monthlyExpensesByMortRate[mortRate] = result.monthlyExpenses;
+                }
+            });
+            
+            const validExpenses = Object.values(monthlyExpensesByMortRate).filter(exp => exp > 0);
+            if (validExpenses.length === 0) {
+                return '<div style="text-align: center; color: #666; padding: 20px;">No monthly expense data available</div>';
+            }
+            
+            const maxMonthlyExpense = Math.max(...validExpenses);
+            const minMonthlyExpense = Math.min(...validExpenses);
+            const currentMonthlyRent = parseFloat(document.getElementById('monthlyRent').value) || 5500;
+            
+            // Color scale function for monthly expenses (green = low, red = high)
+            function getMonthlyExpenseColor(monthlyExpense) {
+                if (!monthlyExpense || monthlyExpense <= 0) return '#f0f0f0';
+                
+                // Use monthly rent as reference point for coloring
+                if (monthlyExpense < currentMonthlyRent * 0.9) {
+                    // Much lower than rent: bright green
+                    return 'rgb(0, 255, 150)';
+                } else if (monthlyExpense < currentMonthlyRent) {
+                    // Lower than rent: light green
+                    return 'rgb(150, 255, 150)';
+                } else if (monthlyExpense < currentMonthlyRent * 1.1) {
+                    // Close to rent: yellow
+                    return 'rgb(255, 255, 100)';
+                } else {
+                    // Higher than rent: red shades
+                    const ratio = Math.min(1, (monthlyExpense - currentMonthlyRent) / (currentMonthlyRent * 0.5));
+                    const red = 255;
+                    const green = Math.max(60, 200 - ratio * 140);
+                    const blue = Math.max(60, 100 - ratio * 40);
+                    return `rgb(${red}, ${green}, ${blue})`;
+                }
+            }
+            
+            // Create simplified monthly expense table - just mortgage rates as rows
+            let monthlyTable = '<div class="pivot-table"><table>';
+            
+            // Header row
+            monthlyTable += '<thead><tr>';
+            monthlyTable += '<th style="background: #f8f9fa; border: 1px solid #ddd; font-weight: bold; padding: 12px; text-align: center;">Mortgage Rate (%)</th>';
+            monthlyTable += '<th style="background: #e3f2fd; border: 1px solid #ddd; font-weight: bold; padding: 12px; text-align: center;">Monthly Expenses</th>';
+            monthlyTable += '<th style="background: #f0f8ff; border: 1px solid #ddd; font-weight: bold; padding: 12px; text-align: center;">vs. Monthly Rent</th>';
+            monthlyTable += '</tr></thead><tbody>';
+            
+            // Create rows for each mortgage rate
+            mortRates.forEach(mortRate => {
+                const monthlyExpense = monthlyExpensesByMortRate[mortRate];
+                
+                if (monthlyExpense && monthlyExpense > 0) {
+                    const bgColor = getMonthlyExpenseColor(monthlyExpense);
+                    const formattedExpense = `CHF ${Math.round(monthlyExpense).toLocaleString()}`;
+                    const difference = monthlyExpense - currentMonthlyRent;
+                    const diffText = difference > 0 ? 
+                        `+CHF ${Math.round(difference).toLocaleString()}` : 
+                        `CHF ${Math.round(Math.abs(difference)).toLocaleString()} less`;
+                    const diffColor = difference > 0 ? '#ff3b30' : '#34c759';
+                    
+                    monthlyTable += `<tr>
+                        <td style="background: #fff3e0; font-weight: bold; text-align: center; border: 1px solid #ddd; font-size: 14px; padding: 12px;">${(mortRate * 100).toFixed(1)}%</td>
+                        <td style="background: ${bgColor}; text-align: center; font-size: 14px; padding: 12px; border: 1px solid #ddd; font-weight: bold;">${formattedExpense}</td>
+                        <td style="background: #f9f9f9; text-align: center; font-size: 13px; padding: 12px; border: 1px solid #ddd; color: ${diffColor}; font-weight: 600;">${diffText}</td>
+                    </tr>`;
+                } else {
+                    monthlyTable += `<tr>
+                        <td style="background: #fff3e0; font-weight: bold; text-align: center; border: 1px solid #ddd; font-size: 14px; padding: 12px;">${(mortRate * 100).toFixed(1)}%</td>
+                        <td style="background: #f0f0f0; text-align: center; color: #999; border: 1px solid #ddd; font-size: 13px; padding: 12px;">N/A</td>
+                        <td style="background: #f0f0f0; text-align: center; color: #999; border: 1px solid #ddd; font-size: 13px; padding: 12px;">N/A</td>
+                    </tr>`;
+                }
+            });
+            
+            monthlyTable += '</tbody></table></div>';
+            return monthlyTable;
+        }
 
         function displaySweepResults(data) {
             const resultsDiv = document.getElementById('sweepResults');
@@ -1841,8 +1943,11 @@
             const rentRecommendedPercent = validResults.length > 0 ? Math.round((belowPurchasePrice / validResults.length) * 100) : 0;
             const neutralPercent = validResults.length > 0 ? Math.round((atPurchasePrice / validResults.length) * 100) : 0;
             
+            // Create monthly cost table
+            const monthlyTable = createMonthlyExpenseTable(data, propRates, invRates, mortRates, currentPurchasePrice);
+            
             resultsDiv.innerHTML = `
-                <h4>Maximum Bid Price Analysis (${data.length} combinations)</h4>
+                <h4>Parameter Sweep Analysis (${data.length} combinations)</h4>
                 <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                     <h5 style="margin: 0 0 10px 0; color: #1976d2;">Summary Statistics</h5>
                     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
@@ -1857,6 +1962,7 @@
                     </div>
                 </div>
                 
+                <h5 style="margin: 20px 0 10px 0; color: #1976d2;">Maximum Bid Price Analysis</h5>
                 <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;">
                     <strong>How to read this table:</strong><br>
                     • Rows represent combinations of <strong>Mortgage Rate</strong> and <strong>Investment Yield</strong><br>
@@ -1865,26 +1971,114 @@
                     • <strong>Color scale:</strong> <span style="background: rgb(255, 60, 60); color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Red</span> = below current purchase price (${formatBidPrice(currentPurchasePrice)}), <span style="background: rgb(255, 255, 0); color: black; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Yellow</span> = moderate, <span style="background: rgb(0, 255, 150); color: black; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Green</span> = highest opportunities
                 </div>
                 
+                <div style="margin-bottom: 20px;">
+                    <button class="button secondary" id="downloadMaxBidCsvBtn" style="margin-right: 10px;">Download Max Bid Price CSV</button>
+                </div>
+                
                 ${table}
+                
+                <h5 style="margin: 30px 0 10px 0; color: #1976d2;">Monthly Cost Analysis</h5>
+                <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;">
+                    <strong>About this table:</strong><br>
+                    • Shows total monthly expenses when buying at the current purchase price (${formatBidPrice(currentPurchasePrice)})<br>
+                    • Includes mortgage interest, amortization, and maintenance costs<br>
+                    • Monthly costs only depend on mortgage rate (independent of property appreciation and investment yield)<br>
+                    • <strong>Color scale based on comparison to monthly rent (CHF ${Math.round(parseFloat(document.getElementById('monthlyRent').value) || 5500).toLocaleString()}):</strong> <span style="background: rgb(0, 255, 150); color: black; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Green</span> = below rent, <span style="background: rgb(255, 255, 100); color: black; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Yellow</span> = close to rent, <span style="background: rgb(255, 60, 60); color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Red</span> = above rent
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <button class="button secondary" id="downloadMonthlyCsvBtn" style="margin-right: 10px;">Download Monthly Cost CSV</button>
+                </div>
+                
+                ${monthlyTable}
             `;
         }
 
-        // CSV download
-        document.getElementById('downloadCsvBtn').addEventListener('click', () => {
-            if (sweepData.length === 0) return;
+        // Set up CSV download buttons
+        function setupCsvDownloadButtons() {
+            // Download Max Bid Price CSV
+            const downloadMaxBidBtn = document.getElementById('downloadMaxBidCsvBtn');
+            if (downloadMaxBidBtn) {
+                downloadMaxBidBtn.addEventListener('click', () => {
+                    if (sweepData.length === 0) return;
+                    
+                    // Create data focused on max bid prices
+                    const maxBidData = sweepData.map(d => ({
+                        PropertyAppreciationRate: d.propertyAppreciationPercent + '%',
+                        InvestmentYieldRate: d.investmentYieldPercent + '%',
+                        MortgageRate: d.mortgageRatePercent + '%',
+                        MaxBidPrice: d.maxBidPrice ? Math.round(d.maxBidPrice) : 'N/A'
+                    }));
+                    
+                    const csv = arrayToCsv(maxBidData);
+                    downloadCsv(csv, `max_bid_price_sweep_${new Date().toISOString().split('T')[0]}.csv`);
+                });
+            }
             
-            const csv = SwissRentBuyCalculator.resultsToCsv(sweepData);
+            // Download Monthly Cost CSV
+            const downloadMonthlyBtn = document.getElementById('downloadMonthlyCsvBtn');
+            if (downloadMonthlyBtn) {
+                downloadMonthlyBtn.addEventListener('click', () => {
+                    if (sweepData.length === 0) return;
+                    
+                    // Get unique mortgage rates and their corresponding monthly expenses
+                    const mortgageRates = [...new Set(sweepData.map(d => d.mortgageRate))].sort((a, b) => a - b);
+                    const currentMonthlyRent = parseFloat(document.getElementById('monthlyRent').value) || 5500;
+                    
+                    const monthlyData = mortgageRates.map(mortRate => {
+                        const result = sweepData.find(d => Math.abs(d.mortgageRate - mortRate) < 0.001);
+                        const monthlyExpense = result ? result.monthlyExpenses : null;
+                        const difference = monthlyExpense ? monthlyExpense - currentMonthlyRent : null;
+                        
+                        return {
+                            MortgageRate: (mortRate * 100).toFixed(1) + '%',
+                            MonthlyExpenses: monthlyExpense ? Math.round(monthlyExpense) : 'N/A',
+                            MonthlyRent: Math.round(currentMonthlyRent),
+                            Difference: difference ? Math.round(difference) : 'N/A',
+                            ComparisonToRent: difference ? (difference > 0 ? 'Higher' : 'Lower') : 'N/A'
+                        };
+                    });
+                    
+                    const csv = arrayToCsv(monthlyData);
+                    downloadCsv(csv, `monthly_cost_analysis_${new Date().toISOString().split('T')[0]}.csv`);
+                });
+            }
+        }
+        
+        // Helper function to convert array to CSV
+        function arrayToCsv(data) {
+            if (data.length === 0) return '';
+            
+            const headers = Object.keys(data[0]);
+            const csvContent = [
+                headers.join(','),
+                ...data.map(row => 
+                    headers.map(header => {
+                        const value = row[header];
+                        if (typeof value === 'string' && value.includes(',')) {
+                            return `"${value}"`;
+                        }
+                        return value;
+                    }).join(',')
+                )
+            ].join('\n');
+            
+            return csvContent;
+        }
+        
+        // Helper function to download CSV
+        function downloadCsv(csv, filename) {
             const blob = new Blob([csv], { type: 'text/csv' });
             const url = URL.createObjectURL(blob);
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `rent_vs_buy_sweep_${new Date().toISOString().split('T')[0]}.csv`;
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-        });
+        }
 
         // Save and Load Parameters functionality
         function getAllParameters() {

@@ -342,7 +342,7 @@ function runBackendValidation() {
         console.log('');
 
         testData.forEach((row, index) => {
-            if (index >= 50) return; // Limit to first 50 for performance
+            // Validate all test cases
 
             totalTests++;
             
@@ -381,6 +381,8 @@ function runBackendValidation() {
                         console.log(`   Result: ${ourResult.Decision} ${ourResult.ResultValue > 0 ? '+' : ''}CHF ${Math.round(ourResult.ResultValue).toLocaleString()}`);
                         console.log(`   vs ML:  ${row.Decision} ${row.ResultValue > 0 ? '+' : ''}CHF ${Math.round(row.ResultValue).toLocaleString()}`);
                         console.log('');
+                    } else if (totalTests % 1000 === 0) {
+                        console.log(`✅ Progress: ${totalTests} tests completed (${passedTests} passed, ${failedTests} failed)`);
                     }
                 } else {
                     failedTests++;
