@@ -1,0 +1,43 @@
+{
+  "version": "2.1.0",
+  "timestamp": "2025-01-08T10:30:00.000Z",
+  "single": {
+    "purchasePrice": 2500000,
+    "downPaymentMode": "auto",
+    "downPayment": 500000,
+    "mortgageAmount": 0,
+    "additionalPurchaseCosts": 50000,
+    "totalRenovations": 100000,
+    "mortgageRate": 1.2,
+    "amortizationYears": 15,
+    "amortizationMode": "swiss",
+    "annualAmortization": 10000,
+    "autoMaintenance": true,
+    "annualMaintenanceCosts": 31250,
+    "propertyAppreciation": 2.0,
+    "autoImputedRental": true,
+    "imputedRentalValue": 42900,
+    "propertyTaxDeductions": 15000,
+    "marginalTaxRate": 28.5,
+    "monthlyRent": 5500,
+    "annualRentalCosts": 25000,
+    "investmentYield": 4.5,
+    "termYears": 15
+  },
+  "breakeven": {
+    "minPrice": 1800000,
+    "maxPrice": 3500000,
+    "tolerance": 1000
+  },
+  "sweep": {
+    "propAppMin": 0,
+    "propAppMax": 4,
+    "propAppStep": 1,
+    "invYieldMin": 3,
+    "invYieldMax": 7,
+    "invYieldStep": 1,
+    "mortRateMin": 0.5,
+    "mortRateMax": 3.0,
+    "mortRateStep": 0.5
+  }
+}

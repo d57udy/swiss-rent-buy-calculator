@@ -320,6 +320,64 @@
             font-size: 14px;
         }
         
+        .save-load-controls {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 0 10px;
+        }
+        
+        .save-load-button {
+            background: #f2f2f7;
+            color: #1d1d1f;
+            padding: 8px 16px;
+            border: 1px solid #d2d2d7;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .save-load-button:hover {
+            background: #e5e5ea;
+            border-color: #007aff;
+        }
+        
+        .save-load-button.save {
+            background: #007aff;
+            color: white;
+            border-color: #007aff;
+        }
+        
+        .save-load-button.save:hover {
+            background: #0056b3;
+        }
+        
+        #loadFileInput {
+            display: none;
+        }
+        
+        .save-load-status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+            text-align: right;
+            min-height: 16px;
+        }
+        
+        .save-load-status.success {
+            color: #34c759;
+        }
+        
+        .save-load-status.error {
+            color: #ff3b30;
+        }
+
         @media (max-width: 768px) {
             .container {
                 padding: 20px;
@@ -333,12 +391,29 @@
                 width: 250px;
                 margin-left: -125px;
             }
+            
+            .save-load-controls {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Swiss Rent vs Buy Calculator</h1>
+        
+        <!-- Save/Load Controls -->
+        <div class="save-load-controls">
+            <button class="save-load-button" id="loadParametersBtn">
+                📁 Load Parameters
+            </button>
+            <button class="save-load-button save" id="saveParametersBtn">
+                💾 Save Parameters
+            </button>
+            <input type="file" id="loadFileInput" accept=".json">
+        </div>
+        <div class="save-load-status" id="saveLoadStatus"></div>
         
         <div class="tab-container">
             <button class="tab active" data-tab="single">Single Calculation</button>
@@ -1507,6 +1582,195 @@
             URL.revokeObjectURL(url);
         });
 
+        // Save and Load Parameters functionality
+        function getAllParameters() {
+            // Collect all input parameters from all tabs
+            const parameters = {
+                version: '2.1.0',
+                timestamp: new Date().toISOString(),
+                
+                // Single Calculation Tab Parameters
+                single: {
+                    purchasePrice: parseFloat(document.getElementById('purchasePrice').value) || 0,
+                    downPaymentMode: document.querySelector('input[name="downPaymentMode"]:checked')?.value || 'auto',
+                    downPayment: parseFloat(document.getElementById('downPayment').value) || 0,
+                    mortgageAmount: parseFloat(document.getElementById('mortgageAmount').value) || 0,
+                    additionalPurchaseCosts: parseFloat(document.getElementById('additionalPurchaseCosts').value) || 0,
+                    totalRenovations: parseFloat(document.getElementById('totalRenovations').value) || 0,
+                    
+                    mortgageRate: parseFloat(document.getElementById('mortgageRate').value) || 0,
+                    amortizationYears: parseInt(document.getElementById('amortizationYears').value) || 10,
+                    amortizationMode: document.querySelector('input[name="amortizationMode"]:checked')?.value || 'auto',
+                    annualAmortization: parseFloat(document.getElementById('annualAmortization').value) || 0,
+                    
+                    autoMaintenance: document.getElementById('autoMaintenance').checked,
+                    annualMaintenanceCosts: parseFloat(document.getElementById('annualMaintenanceCosts').value) || 0,
+                    propertyAppreciation: parseFloat(document.getElementById('propertyAppreciation').value) || 0,
+                    
+                    autoImputedRental: document.getElementById('autoImputedRental').checked,
+                    imputedRentalValue: parseFloat(document.getElementById('imputedRentalValue').value) || 0,
+                    propertyTaxDeductions: parseFloat(document.getElementById('propertyTaxDeductions').value) || 0,
+                    marginalTaxRate: parseFloat(document.getElementById('marginalTaxRate').value) || 0,
+                    
+                    monthlyRent: parseFloat(document.getElementById('monthlyRent').value) || 0,
+                    annualRentalCosts: parseFloat(document.getElementById('annualRentalCosts').value) || 0,
+                    
+                    investmentYield: parseFloat(document.getElementById('investmentYield').value) || 0,
+                    termYears: parseInt(document.getElementById('termYears').value) || 10
+                },
+                
+                // Max Bid Finder Tab Parameters
+                breakeven: {
+                    minPrice: parseFloat(document.getElementById('beMinPrice').value) || 1500000,
+                    maxPrice: parseFloat(document.getElementById('beMaxPrice').value) || 10000000,
+                    tolerance: parseFloat(document.getElementById('beTolerance').value) || 2500
+                },
+                
+                // Parameter Sweep Tab Parameters
+                sweep: {
+                    propAppMin: parseFloat(document.getElementById('propAppMin').value) || 0,
+                    propAppMax: parseFloat(document.getElementById('propAppMax').value) || 3,
+                    propAppStep: parseFloat(document.getElementById('propAppStep').value) || 0.5,
+                    
+                    invYieldMin: parseFloat(document.getElementById('invYieldMin').value) || 2,
+                    invYieldMax: parseFloat(document.getElementById('invYieldMax').value) || 5,
+                    invYieldStep: parseFloat(document.getElementById('invYieldStep').value) || 0.5,
+                    
+                    mortRateMin: parseFloat(document.getElementById('mortRateMin').value) || 0.5,
+                    mortRateMax: parseFloat(document.getElementById('mortRateMax').value) || 2.5,
+                    mortRateStep: parseFloat(document.getElementById('mortRateStep').value) || 0.5
+                }
+            };
+            
+            return parameters;
+        }
+        
+        function saveParameters() {
+            try {
+                const parameters = getAllParameters();
+                const jsonString = JSON.stringify(parameters, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `swiss-rent-buy-calculator-params-${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showSaveLoadStatus('Parameters saved successfully!', 'success');
+            } catch (error) {
+                console.error('Error saving parameters:', error);
+                showSaveLoadStatus('Error saving parameters: ' + error.message, 'error');
+            }
+        }
+        
+        function loadParameters(parametersData) {
+            try {
+                // Validate the data structure
+                if (!parametersData || typeof parametersData !== 'object') {
+                    throw new Error('Invalid parameter file format');
+                }
+                
+                const params = parametersData;
+                
+                // Load Single Calculation Tab Parameters
+                if (params.single) {
+                    const s = params.single;
+                    
+                    // Basic purchase parameters
+                    if (s.purchasePrice !== undefined) document.getElementById('purchasePrice').value = s.purchasePrice;
+                    if (s.additionalPurchaseCosts !== undefined) document.getElementById('additionalPurchaseCosts').value = s.additionalPurchaseCosts;
+                    if (s.totalRenovations !== undefined) document.getElementById('totalRenovations').value = s.totalRenovations;
+                    
+                    // Down payment mode
+                    if (s.downPaymentMode) {
+                        const downPaymentRadio = document.querySelector(`input[name="downPaymentMode"][value="${s.downPaymentMode}"]`);
+                        if (downPaymentRadio) downPaymentRadio.checked = true;
+                    }
+                    if (s.downPayment !== undefined) document.getElementById('downPayment').value = s.downPayment;
+                    if (s.mortgageAmount !== undefined) document.getElementById('mortgageAmount').value = s.mortgageAmount;
+                    
+                    // Mortgage parameters
+                    if (s.mortgageRate !== undefined) document.getElementById('mortgageRate').value = s.mortgageRate;
+                    if (s.amortizationYears !== undefined) document.getElementById('amortizationYears').value = s.amortizationYears;
+                    
+                    // Amortization mode
+                    if (s.amortizationMode) {
+                        const amortizationRadio = document.querySelector(`input[name="amortizationMode"][value="${s.amortizationMode}"]`);
+                        if (amortizationRadio) amortizationRadio.checked = true;
+                    }
+                    if (s.annualAmortization !== undefined) document.getElementById('annualAmortization').value = s.annualAmortization;
+                    
+                    // Property costs
+                    if (s.autoMaintenance !== undefined) document.getElementById('autoMaintenance').checked = s.autoMaintenance;
+                    if (s.annualMaintenanceCosts !== undefined) document.getElementById('annualMaintenanceCosts').value = s.annualMaintenanceCosts;
+                    if (s.propertyAppreciation !== undefined) document.getElementById('propertyAppreciation').value = s.propertyAppreciation;
+                    
+                    // Tax parameters
+                    if (s.autoImputedRental !== undefined) document.getElementById('autoImputedRental').checked = s.autoImputedRental;
+                    if (s.imputedRentalValue !== undefined) document.getElementById('imputedRentalValue').value = s.imputedRentalValue;
+                    if (s.propertyTaxDeductions !== undefined) document.getElementById('propertyTaxDeductions').value = s.propertyTaxDeductions;
+                    if (s.marginalTaxRate !== undefined) document.getElementById('marginalTaxRate').value = s.marginalTaxRate;
+                    
+                    // Rental parameters
+                    if (s.monthlyRent !== undefined) document.getElementById('monthlyRent').value = s.monthlyRent;
+                    if (s.annualRentalCosts !== undefined) document.getElementById('annualRentalCosts').value = s.annualRentalCosts;
+                    
+                    // Investment parameters
+                    if (s.investmentYield !== undefined) document.getElementById('investmentYield').value = s.investmentYield;
+                    if (s.termYears !== undefined) document.getElementById('termYears').value = s.termYears;
+                }
+                
+                // Load Max Bid Finder Tab Parameters
+                if (params.breakeven) {
+                    const b = params.breakeven;
+                    if (b.minPrice !== undefined) document.getElementById('beMinPrice').value = b.minPrice;
+                    if (b.maxPrice !== undefined) document.getElementById('beMaxPrice').value = b.maxPrice;
+                    if (b.tolerance !== undefined) document.getElementById('beTolerance').value = b.tolerance;
+                }
+                
+                // Load Parameter Sweep Tab Parameters
+                if (params.sweep) {
+                    const sw = params.sweep;
+                    if (sw.propAppMin !== undefined) document.getElementById('propAppMin').value = sw.propAppMin;
+                    if (sw.propAppMax !== undefined) document.getElementById('propAppMax').value = sw.propAppMax;
+                    if (sw.propAppStep !== undefined) document.getElementById('propAppStep').value = sw.propAppStep;
+                    
+                    if (sw.invYieldMin !== undefined) document.getElementById('invYieldMin').value = sw.invYieldMin;
+                    if (sw.invYieldMax !== undefined) document.getElementById('invYieldMax').value = sw.invYieldMax;
+                    if (sw.invYieldStep !== undefined) document.getElementById('invYieldStep').value = sw.invYieldStep;
+                    
+                    if (sw.mortRateMin !== undefined) document.getElementById('mortRateMin').value = sw.mortRateMin;
+                    if (sw.mortRateMax !== undefined) document.getElementById('mortRateMax').value = sw.mortRateMax;
+                    if (sw.mortRateStep !== undefined) document.getElementById('mortRateStep').value = sw.mortRateStep;
+                }
+                
+                // Trigger recalculation of auto-calculated fields
+                updateCalculatedFields();
+                
+                showSaveLoadStatus('Parameters loaded successfully!', 'success');
+                
+            } catch (error) {
+                console.error('Error loading parameters:', error);
+                showSaveLoadStatus('Error loading parameters: ' + error.message, 'error');
+            }
+        }
+        
+        function showSaveLoadStatus(message, type) {
+            const statusElement = document.getElementById('saveLoadStatus');
+            statusElement.textContent = message;
+            statusElement.className = `save-load-status ${type}`;
+            
+            // Clear the message after 3 seconds
+            setTimeout(() => {
+                statusElement.textContent = '';
+                statusElement.className = 'save-load-status';
+            }, 3000);
+        }
+
         // Initialize version numbering
         async function setVersionNumbers() {
             let version = '2.1.0'; // Fallback version
@@ -1535,6 +1799,31 @@
             // Also update page title to include version
             document.title = `Swiss Rent vs Buy Calculator v${version}`;
         }
+
+        // Save and Load event listeners
+        document.getElementById('saveParametersBtn').addEventListener('click', saveParameters);
+        
+        document.getElementById('loadParametersBtn').addEventListener('click', () => {
+            document.getElementById('loadFileInput').click();
+        });
+        
+        document.getElementById('loadFileInput').addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const parametersData = JSON.parse(e.target.result);
+                        loadParameters(parametersData);
+                    } catch (error) {
+                        showSaveLoadStatus('Error reading file: Invalid JSON format', 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+            // Reset the file input so same file can be loaded again
+            event.target.value = '';
+        });
 
         // Initialize
         setVersionNumbers();
