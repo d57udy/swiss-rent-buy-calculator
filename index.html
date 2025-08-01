@@ -801,27 +801,27 @@
                 <div class="sweep-param">
                     <h4>Property Appreciation (%/year)</h4>
                     <div class="range-inputs">
-                        <input type="number" id="propAppMin" placeholder="Min" value="0" step="0.5">
-                        <input type="number" id="propAppMax" placeholder="Max" value="3" step="0.5">
-                        <input type="number" id="propAppStep" placeholder="Step" value="0.5" step="0.1">
+                        <input type="number" id="propAppMin" placeholder="Min" value="-1" step="0.5">
+                        <input type="number" id="propAppMax" placeholder="Max" value="5" step="0.5">
+                        <input type="number" id="propAppStep" placeholder="Step" value="1" step="0.1">
                     </div>
                 </div>
                 
                 <div class="sweep-param">
                     <h4>Investment Yield (%/year)</h4>
                     <div class="range-inputs">
-                        <input type="number" id="invYieldMin" placeholder="Min" value="2" step="0.5">
-                        <input type="number" id="invYieldMax" placeholder="Max" value="5" step="0.5">
-                        <input type="number" id="invYieldStep" placeholder="Step" value="0.5" step="0.1">
+                        <input type="number" id="invYieldMin" placeholder="Min" value="-1" step="0.5">
+                        <input type="number" id="invYieldMax" placeholder="Max" value="8" step="0.5">
+                        <input type="number" id="invYieldStep" placeholder="Step" value="1" step="0.1">
                     </div>
                 </div>
                 
                 <div class="sweep-param">
                     <h4>Mortgage Rate (%)</h4>
                     <div class="range-inputs">
-                        <input type="number" id="mortRateMin" placeholder="Min" value="0.5" step="0.1">
-                        <input type="number" id="mortRateMax" placeholder="Max" value="2.5" step="0.1">
-                        <input type="number" id="mortRateStep" placeholder="Step" value="0.5" step="0.1">
+                        <input type="number" id="mortRateMin" placeholder="Min" value="1" step="0.1">
+                        <input type="number" id="mortRateMax" placeholder="Max" value="5" step="0.1">
+                        <input type="number" id="mortRateStep" placeholder="Step" value="1" step="0.1">
                     </div>
                 </div>
             </div>
@@ -1458,8 +1458,185 @@
             resultsDiv.style.display = 'block';
         }
 
-        // Parameter sweep
+        // Parameter sweep functionality
         let sweepData = [];
+
+        function formatBidPrice(price) {
+            if (!price || price <= 0) return 'N/A';
+            
+            if (price >= 1000000) {
+                // Millions: 1.38M, 2.55M, etc.
+                const millions = price / 1000000;
+                if (millions >= 100) {
+                    return Math.round(millions) + 'M';
+                } else if (millions >= 10) {
+                    return (Math.round(millions * 10) / 10) + 'M';
+                } else {
+                    return (Math.round(millions * 100) / 100) + 'M';
+                }
+            } else if (price >= 1000) {
+                // Thousands: 786k, 1.25k, etc.
+                const thousands = price / 1000;
+                if (thousands >= 100) {
+                    return Math.round(thousands) + 'k';
+                } else {
+                    return (Math.round(thousands * 10) / 10) + 'k';
+                }
+            } else {
+                // Less than 1000, show as is
+                return Math.round(price).toString();
+            }
+        }
+
+        function runMaxBidPriceSweep(baseParams, sweepRanges) {
+            const results = [];
+            let totalCombinations = 0;
+            let processedCombinations = 0;
+            
+            // Calculate total combinations for progress tracking
+            const propRates = [];
+            for (let val = sweepRanges.propertyAppreciationRate.min; val <= sweepRanges.propertyAppreciationRate.max; val += sweepRanges.propertyAppreciationRate.step) {
+                propRates.push(val);
+            }
+            const invRates = [];
+            for (let val = sweepRanges.investmentYieldRate.min; val <= sweepRanges.investmentYieldRate.max; val += sweepRanges.investmentYieldRate.step) {
+                invRates.push(val);
+            }
+            const mortRates = [];
+            for (let val = sweepRanges.mortgageRate.min; val <= sweepRanges.mortgageRate.max; val += sweepRanges.mortgageRate.step) {
+                mortRates.push(val);
+            }
+            
+            totalCombinations = propRates.length * invRates.length * mortRates.length;
+            
+            // Generate all parameter combinations and find max bid price for each
+            propRates.forEach(propRate => {
+                invRates.forEach(invRate => {
+                    mortRates.forEach(mortRate => {
+                        processedCombinations++;
+                        
+                        // Create parameters for this combination
+                        const testParams = {
+                            ...baseParams,
+                            propertyAppreciationRate: propRate,
+                            investmentYieldRate: invRate,
+                            mortgageRate: mortRate
+                        };
+                        
+                        // Find break-even price for this parameter combination using max bid tab settings
+                        const options = {
+                            minPrice: parseFloat(document.getElementById('beMinPrice').value) || 1500000,
+                            maxPrice: parseFloat(document.getElementById('beMaxPrice').value) || 10000000,
+                            tolerance: parseFloat(document.getElementById('beTolerance').value) || 2500,
+                            maxIterations: 100  // Reduced for speed
+                        };
+                        
+                        let maxBidPrice = null;
+                        try {
+                            // Use a simplified break-even finder for speed
+                            let low = options.minPrice;
+                            let high = options.maxPrice;
+                            let iterations = 0;
+                            let bestPrice = null;
+                            let bestDifference = Infinity;
+                            
+                            while (low <= high && iterations < options.maxIterations) {
+                                const testPrice = Math.round((low + high) / 2);
+                                const paramsWithPrice = getParametersWithAutoCalculations(testPrice);
+                                
+                                // Override with sweep parameters
+                                paramsWithPrice.propertyAppreciationRate = propRate;
+                                paramsWithPrice.investmentYieldRate = invRate;
+                                paramsWithPrice.mortgageRate = mortRate;
+                                
+                                const result = SwissRentBuyCalculator.calculate(paramsWithPrice);
+                                const difference = Math.abs(result.ResultValue);
+                                
+                                if (difference < bestDifference) {
+                                    bestDifference = difference;
+                                    bestPrice = testPrice;
+                                }
+                                
+                                if (difference <= options.tolerance) {
+                                    break;
+                                }
+                                
+                                if (result.ResultValue > 0) {
+                                    low = testPrice + 1;
+                                } else {
+                                    high = testPrice - 1;
+                                }
+                                
+                                iterations++;
+                            }
+                            
+                            // Determine if we found a good break-even or hit search limits
+                            if (bestDifference <= options.tolerance) {
+                                // Found good break-even within tolerance
+                                maxBidPrice = bestPrice;
+                            } else {
+                                // Didn't find good break-even - check if we're hitting search boundaries
+                                
+                                // Test the boundary conditions to see where the true max bid lies
+                                const maxPriceParams = getParametersWithAutoCalculations(options.maxPrice);
+                                maxPriceParams.propertyAppreciationRate = propRate;
+                                maxPriceParams.investmentYieldRate = invRate;
+                                maxPriceParams.mortgageRate = mortRate;
+                                const maxPriceResult = SwissRentBuyCalculator.calculate(maxPriceParams);
+                                
+                                const minPriceParams = getParametersWithAutoCalculations(options.minPrice);
+                                minPriceParams.propertyAppreciationRate = propRate;
+                                minPriceParams.investmentYieldRate = invRate;
+                                minPriceParams.mortgageRate = mortRate;
+                                const minPriceResult = SwissRentBuyCalculator.calculate(minPriceParams);
+                                
+                                if (maxPriceResult.ResultValue > 0) {
+                                    // Even at max price, buying is still cheaper - true max bid is above search range
+                                    maxBidPrice = options.maxPrice; // Will be displayed as ">4M"
+                                } else if (minPriceResult.ResultValue < 0) {
+                                    // Even at min price, renting is still cheaper - true max bid is below search range
+                                    maxBidPrice = options.minPrice; // Will be displayed as "<1.5M"
+                                } else {
+                                    // True max bid is somewhere in the range, use our best approximation
+                                    // But if bestPrice is too close to boundaries, still indicate limit
+                                    if (bestPrice >= options.maxPrice - 1000) {
+                                        maxBidPrice = options.maxPrice; // Near max boundary
+                                    } else if (bestPrice <= options.minPrice + 1000) {
+                                        maxBidPrice = options.minPrice; // Near min boundary
+                                    } else {
+                                        maxBidPrice = bestPrice; // Use best approximation
+                                    }
+                                }
+                            }
+                            
+                        } catch (error) {
+                            console.warn(`Error calculating max bid for combination: prop=${propRate}, inv=${invRate}, mort=${mortRate}`, error);
+                            maxBidPrice = null;
+                        }
+                        
+                        // Store the result
+                        results.push({
+                            propertyAppreciationRate: propRate,
+                            investmentYieldRate: invRate,
+                            mortgageRate: mortRate,
+                            maxBidPrice: maxBidPrice,
+                            propertyAppreciationPercent: (propRate * 100).toFixed(1),
+                            investmentYieldPercent: (invRate * 100).toFixed(1),
+                            mortgageRatePercent: (mortRate * 100).toFixed(1)
+                        });
+                        
+                        // Update progress occasionally
+                        if (processedCombinations % 10 === 0) {
+                            const progress = Math.round((processedCombinations / totalCombinations) * 100);
+                            document.getElementById('sweepResults').innerHTML = 
+                                `<div class="loading">Progress: ${progress}% (${processedCombinations}/${totalCombinations} combinations)</div>`;
+                        }
+                    });
+                });
+            });
+            
+            return results;
+        }
 
         document.getElementById('sweepBtn').addEventListener('click', () => {
             const sweepBtn = document.getElementById('sweepBtn');
@@ -1467,26 +1644,38 @@
             
             sweepBtn.textContent = 'Running...';
             sweepBtn.disabled = true;
-            resultsDiv.innerHTML = '<div class="loading">Running parameter sweep...</div>';
+            resultsDiv.innerHTML = '<div class="loading">Running parameter sweep to find maximum bid prices...</div>';
 
             setTimeout(() => {
                 try {
+                    // Get the base parameters from the single calculation tab
                     const baseParams = {
-                        purchasePrice: 2000000,
-                        downPayment: 400000,
-                        monthlyRent: 5500,
-                        marginalTaxRate: 0.236,
-                        termYears: 10,
-                        annualMaintenanceCosts: 25000,
-                        amortizationYears: 10,
-                        annualAmortization: 32000,
-                        totalRenovations: 0,
-                        additionalPurchaseCosts: 40000,
-                        imputedRentalValue: Math.round(0.65 * 12 * 5500),
-                        propertyTaxDeductions: 13000,
-                        annualRentalCosts: 20000
+                        // Get parameters from current form values
+                        downPaymentMode: document.querySelector('input[name="downPaymentMode"]:checked')?.value || 'auto',
+                        downPayment: parseFloat(document.getElementById('downPayment').value) || 400000,
+                        mortgageAmount: parseFloat(document.getElementById('mortgageAmount').value) || 0,
+                        additionalPurchaseCosts: parseFloat(document.getElementById('additionalPurchaseCosts').value) || 40000,
+                        totalRenovations: parseFloat(document.getElementById('totalRenovations').value) || 0,
+                        
+                        amortizationYears: parseInt(document.getElementById('amortizationYears').value) || 10,
+                        amortizationMode: document.querySelector('input[name="amortizationMode"]:checked')?.value || 'auto',
+                        annualAmortization: parseFloat(document.getElementById('annualAmortization').value) || 32000,
+                        
+                        autoMaintenance: document.getElementById('autoMaintenance').checked,
+                        annualMaintenanceCosts: parseFloat(document.getElementById('annualMaintenanceCosts').value) || 25000,
+                        
+                        autoImputedRental: document.getElementById('autoImputedRental').checked,
+                        imputedRentalValue: parseFloat(document.getElementById('imputedRentalValue').value) || 42900,
+                        propertyTaxDeductions: parseFloat(document.getElementById('propertyTaxDeductions').value) || 13000,
+                        marginalTaxRate: parseFloat(document.getElementById('marginalTaxRate').value) / 100 || 0.236,
+                        
+                        monthlyRent: parseFloat(document.getElementById('monthlyRent').value) || 5500,
+                        annualRentalCosts: parseFloat(document.getElementById('annualRentalCosts').value) || 20000,
+                        
+                        termYears: parseInt(document.getElementById('termYears').value) || 10
                     };
 
+                    // Get sweep ranges
                     const sweepRanges = {
                         propertyAppreciationRate: {
                             min: parseFloat(document.getElementById('propAppMin').value) / 100,
@@ -1505,7 +1694,8 @@
                         }
                     };
 
-                    sweepData = SwissRentBuyCalculator.parameterSweep(baseParams, sweepRanges);
+                    // Run parameter sweep to find maximum bid prices
+                    sweepData = runMaxBidPriceSweep(baseParams, sweepRanges);
                     displaySweepResults(sweepData);
                     
                     document.getElementById('downloadCsvBtn').style.display = 'inline-block';
@@ -1526,41 +1716,155 @@
                 return;
             }
 
+            // Extract unique values for each dimension
             const propRates = [...new Set(data.map(d => d.propertyAppreciationRate))].sort((a, b) => a - b);
             const invRates = [...new Set(data.map(d => d.investmentYieldRate))].sort((a, b) => a - b);
+            const mortRates = [...new Set(data.map(d => d.mortgageRate))].sort((a, b) => a - b);
             
-            let table = '<div class="pivot-table"><table><thead><tr><th>Property Appreciation \\ Investment Yield</th>';
-            invRates.forEach(rate => {
-                table += `<th>${(rate * 100).toFixed(1)}%</th>`;
+            // Calculate color scale based on current purchase price and sweep results
+            const currentPurchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 2000000;
+            const validResults = data.filter(d => d.maxBidPrice !== null);
+            const maxBidPrice = validResults.length > 0 ? Math.max(...validResults.map(d => d.maxBidPrice)) : currentPurchasePrice * 1.5;
+            const minBidPrice = validResults.length > 0 ? Math.min(...validResults.map(d => d.maxBidPrice)) : currentPurchasePrice * 0.5;
+            
+            // Color scale function
+            function getBidPriceColor(bidPrice) {
+                if (!bidPrice || bidPrice <= 0) return '#f0f0f0';
+                
+                // Define color scale: red (below purchase price) -> yellow (at purchase price) -> green (high max bid)
+                const redPoint = currentPurchasePrice;
+                const greenPoint = maxBidPrice;
+                
+                if (bidPrice < redPoint) {
+                    // Below purchase price: various shades of red (darker red for lower values)
+                    const ratio = Math.max(0.3, bidPrice / redPoint); // Don't go too dark
+                    const red = Math.round(255);
+                    const green = Math.round(60 * ratio); // Some green to avoid pure red
+                    const blue = Math.round(60 * ratio);  // Some blue to avoid pure red
+                    return `rgb(${red}, ${green}, ${blue})`;
+                } else if (bidPrice === redPoint) {
+                    // Exactly at purchase price: bright yellow
+                    return `rgb(255, 255, 0)`;
+                } else if (bidPrice < greenPoint) {
+                    // Between purchase price and max: yellow to green gradient
+                    const ratio = (bidPrice - redPoint) / (greenPoint - redPoint);
+                    const red = Math.round(255 * (1 - ratio));  // Fade from yellow (255) to green (0)
+                    const green = 255;                          // Always full green
+                    const blue = Math.round(100 * (1 - ratio)); // Fade from yellow (100) to green (200)
+                    return `rgb(${red}, ${green}, ${Math.min(200, blue + 100)})`;
+                } else {
+                    // At or above max: bright green
+                    return `rgb(0, 255, 150)`;
+                }
+            }
+            
+            // Create table with improved headers
+            let table = '<div class="pivot-table"><table>';
+            
+            // Header row 1: Property Appreciation (merged header)
+            table += '<thead><tr>';
+            table += '<th rowspan="2" style="background: #f8f9fa; vertical-align: middle; border: 1px solid #ddd; font-weight: bold;">Mortgage<br>Rate (%)</th>';
+            table += '<th rowspan="2" style="background: #f8f9fa; vertical-align: middle; border: 1px solid #ddd; font-weight: bold;">Investment<br>Yield (%)</th>';
+            table += `<th colspan="${propRates.length}" style="background: #e3f2fd; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 14px;">Property Appreciation (%/year)</th>`;
+            table += '</tr>';
+            
+            // Header row 2: Individual property appreciation values
+            table += '<tr>';
+            propRates.forEach(rate => {
+                table += `<th style="background: #e8f4f8; text-align: center; border: 1px solid #ddd; font-size: 12px; padding: 8px;">${(rate * 100).toFixed(1)}%</th>`;
             });
             table += '</tr></thead><tbody>';
             
-            propRates.forEach(propRate => {
-                table += `<tr><td><strong>${(propRate * 100).toFixed(1)}%</strong></td>`;
-                invRates.forEach(invRate => {
-                    const result = data.find(d => 
-                        Math.abs(d.propertyAppreciationRate - propRate) < 0.001 && 
-                        Math.abs(d.investmentYieldRate - invRate) < 0.001
-                    );
+            // Create rows with Mortgage Rate + Investment Yield combinations
+            mortRates.forEach((mortRate, mortIdx) => {
+                invRates.forEach((invRate, invIdx) => {
+                    table += '<tr>';
                     
-                    if (result) {
-                        const cellClass = `cell-${result.Decision.toLowerCase()}`;
-                        const value = result.ResultValue;
-                        table += `<td class="${cellClass}">${result.Decision}<br>${value > 0 ? '+' : ''}${Math.round(value).toLocaleString()}</td>`;
-                    } else {
-                        table += '<td>-</td>';
+                    // First column shows mortgage rate (only on first investment yield row for each mortgage rate)
+                    if (invIdx === 0) {
+                        table += `<td rowspan="${invRates.length}" style="background: #fff3e0; vertical-align: middle; font-weight: bold; text-align: center; border: 1px solid #ddd; font-size: 13px;">${(mortRate * 100).toFixed(1)}</td>`;
                     }
+                    
+                    // Second column shows investment yield
+                    table += `<td style="background: #f1f8e9; font-weight: 600; text-align: center; border: 1px solid #ddd; font-size: 13px;">${(invRate * 100).toFixed(1)}</td>`;
+                    
+                    // Data columns for each property appreciation rate
+                    propRates.forEach(propRate => {
+                        const result = data.find(d => 
+                            Math.abs(d.propertyAppreciationRate - propRate) < 0.001 && 
+                            Math.abs(d.investmentYieldRate - invRate) < 0.001 &&
+                            Math.abs(d.mortgageRate - mortRate) < 0.001
+                        );
+                        
+                        if (result && result.maxBidPrice !== null) {
+                            const bgColor = getBidPriceColor(result.maxBidPrice);
+                            let formattedPrice = formatBidPrice(result.maxBidPrice);
+                            
+                            // Check if we hit the search price limits
+                            const maxSearchPrice = parseFloat(document.getElementById('beMaxPrice').value) || 10000000;
+                            const minSearchPrice = parseFloat(document.getElementById('beMinPrice').value) || 1500000;
+                            
+                            if (result.maxBidPrice >= maxSearchPrice - 1000) {
+                                formattedPrice = '>' + formatBidPrice(maxSearchPrice);
+                            } else if (result.maxBidPrice <= minSearchPrice + 1000) {
+                                formattedPrice = '<' + formatBidPrice(minSearchPrice);
+                            }
+                            
+                            table += `<td class="bid-price-cell" style="background: ${bgColor}; text-align: center; font-size: 12px; padding: 6px; border: 1px solid #ddd; font-weight: bold;">
+                                        ${formattedPrice}
+                                      </td>`;
+                        } else {
+                            table += '<td style="background: #f0f0f0; text-align: center; color: #999; border: 1px solid #ddd; font-size: 11px;">N/A</td>';
+                        }
+                    });
+                    table += '</tr>';
                 });
-                table += '</tr>';
+                
+                // Add separator line between mortgage rate groups (except for the last one)
+                if (mortIdx < mortRates.length - 1) {
+                    table += `<tr style="border-bottom: 3px solid #666;"><td colspan="${propRates.length + 2}" style="height: 2px; padding: 0; border: none;"></td></tr>`;
+                }
             });
             
             table += '</tbody></table></div>';
             
+            // Calculate some statistics with improved formatting
+            const avgBidPrice = validResults.length > 0 ? 
+                validResults.reduce((sum, d) => sum + d.maxBidPrice, 0) / validResults.length : 0;
+            
+            // Calculate buy vs rent recommendation percentages
+            const abovePurchasePrice = validResults.filter(d => d.maxBidPrice > currentPurchasePrice).length;
+            const belowPurchasePrice = validResults.filter(d => d.maxBidPrice < currentPurchasePrice).length;
+            const atPurchasePrice = validResults.length - abovePurchasePrice - belowPurchasePrice;
+            
+            const buyRecommendedPercent = validResults.length > 0 ? Math.round((abovePurchasePrice / validResults.length) * 100) : 0;
+            const rentRecommendedPercent = validResults.length > 0 ? Math.round((belowPurchasePrice / validResults.length) * 100) : 0;
+            const neutralPercent = validResults.length > 0 ? Math.round((atPurchasePrice / validResults.length) * 100) : 0;
+            
             resultsDiv.innerHTML = `
-                <h4>Parameter Sweep Results (${data.length} combinations)</h4>
-                <p>Colors: <span class="cell-buy" style="padding: 2px 8px; border-radius: 4px;">BUY</span> 
-                <span class="cell-rent" style="padding: 2px 8px; border-radius: 4px;">RENT</span> 
-                <span class="cell-even" style="padding: 2px 8px; border-radius: 4px;">EVEN</span></p>
+                <h4>Maximum Bid Price Analysis (${data.length} combinations)</h4>
+                <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                    <h5 style="margin: 0 0 10px 0; color: #1976d2;">Summary Statistics</h5>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div><strong>Current Purchase Price:</strong> ${formatBidPrice(currentPurchasePrice)}</div>
+                        <div><strong>Average Max Bid:</strong> ${formatBidPrice(avgBidPrice)}</div>
+                        <div><strong>Highest Max Bid:</strong> ${formatBidPrice(maxBidPrice)}</div>
+                        <div><strong>Lowest Max Bid:</strong> ${formatBidPrice(minBidPrice)}</div>
+                        <div><strong>Valid Results:</strong> ${validResults.length}/${data.length}</div>
+                        <div><strong>Buy Recommended:</strong> ${abovePurchasePrice} scenarios (${buyRecommendedPercent}%)</div>
+                        <div><strong>Rent Recommended:</strong> ${belowPurchasePrice} scenarios (${rentRecommendedPercent}%)</div>
+                        ${neutralPercent > 0 ? `<div><strong>Neutral:</strong> ${atPurchasePrice} scenarios (${neutralPercent}%)</div>` : ''}
+                    </div>
+                </div>
+                
+                <div style="background: #f9f9f9; padding: 10px; border-radius: 6px; margin-bottom: 15px; font-size: 13px;">
+                    <strong>How to read this table:</strong><br>
+                    • Rows represent combinations of <strong>Mortgage Rate</strong> and <strong>Investment Yield</strong><br>
+                    • Columns represent different <strong>Property Appreciation</strong> rates<br>
+                    • Values show the maximum price you should bid to break even with renting<br>
+                    • <strong>Color scale:</strong> <span style="background: rgb(255, 60, 60); color: white; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Red</span> = below current purchase price (${formatBidPrice(currentPurchasePrice)}), <span style="background: rgb(255, 255, 0); color: black; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Yellow</span> = moderate, <span style="background: rgb(0, 255, 150); color: black; padding: 2px 6px; border-radius: 3px; font-weight: bold;">Green</span> = highest opportunities
+                </div>
+                
                 ${table}
             `;
         }
@@ -1628,17 +1932,17 @@
                 
                 // Parameter Sweep Tab Parameters
                 sweep: {
-                    propAppMin: parseFloat(document.getElementById('propAppMin').value) || 0,
-                    propAppMax: parseFloat(document.getElementById('propAppMax').value) || 3,
-                    propAppStep: parseFloat(document.getElementById('propAppStep').value) || 0.5,
+                    propAppMin: parseFloat(document.getElementById('propAppMin').value) || -1,
+                    propAppMax: parseFloat(document.getElementById('propAppMax').value) || 5,
+                    propAppStep: parseFloat(document.getElementById('propAppStep').value) || 1,
                     
-                    invYieldMin: parseFloat(document.getElementById('invYieldMin').value) || 2,
-                    invYieldMax: parseFloat(document.getElementById('invYieldMax').value) || 5,
-                    invYieldStep: parseFloat(document.getElementById('invYieldStep').value) || 0.5,
+                    invYieldMin: parseFloat(document.getElementById('invYieldMin').value) || -1,
+                    invYieldMax: parseFloat(document.getElementById('invYieldMax').value) || 8,
+                    invYieldStep: parseFloat(document.getElementById('invYieldStep').value) || 1,
                     
-                    mortRateMin: parseFloat(document.getElementById('mortRateMin').value) || 0.5,
-                    mortRateMax: parseFloat(document.getElementById('mortRateMax').value) || 2.5,
-                    mortRateStep: parseFloat(document.getElementById('mortRateStep').value) || 0.5
+                    mortRateMin: parseFloat(document.getElementById('mortRateMin').value) || 1,
+                    mortRateMax: parseFloat(document.getElementById('mortRateMax').value) || 5,
+                    mortRateStep: parseFloat(document.getElementById('mortRateStep').value) || 1
                 }
             };
             
