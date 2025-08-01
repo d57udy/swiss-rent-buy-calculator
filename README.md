@@ -126,6 +126,80 @@ Rental Costs = Rent + Supplemental Costs - Investment Returns - Opportunity Cost
 3. **Investment Taxation**: Alternative investments are subject to income tax
 4. **Amortization Requirements**: Mandatory principal reduction affects cash flow
 
+### Single Calculation In-Depth
+
+The "Single Calculation" tab is the core of the calculator, providing a head-to-head financial comparison between buying a property and renting a comparable one over a specified time period. It synthesizes user inputs to model both scenarios according to Swiss financial regulations and market practices.
+
+#### Execution Flow
+
+When the user clicks the **"Calculate"** button, the following steps occur:
+
+1.  **Input Gathering**: The application collects all values from the input fields in the "Single Calculation" tab. These inputs are converted to the correct numerical formats (e.g., percentages are converted to decimals).
+2.  **`calculate` Function Call**: The gathered parameters are passed as a single object to the `SwissRentBuyCalculator.calculate(params)` static method in `calculator.js`.
+3.  **Scenario Modeling**: Inside the `calculate` function, two distinct financial scenarios are modeled in parallel: the **Purchase Scenario** and the **Rental Scenario**.
+4.  **Cost-Benefit Analysis**: The total net costs of both scenarios are calculated. The final recommendation is determined by comparing these two totals.
+5.  **Result Display**: The comprehensive results, including the final "BUY" or "RENT" decision, the financial advantage, and a detailed cost breakdown, are formatted and displayed in the results section of the UI.
+
+---
+
+#### Output Value Generation
+
+Here is a detailed breakdown of how each output value in the results section is calculated:
+
+##### <u>Decision & Net Financial Benefit</u>
+
+-   **Decision (`Decision`)**:
+    -   This is the final recommendation: **BUY**, **RENT**, or **EVEN**.
+    -   It is determined by the `ResultValue`. If `ResultValue` is positive, the decision is "BUY". If negative, it's "RENT". If zero, it's "EVEN".
+-   **Financial Benefit (`ResultValue`)**:
+    -   This is the ultimate output of the calculation, representing the net financial advantage of one option over the other over the entire analysis period.
+    -   **Formula**: `ResultValue = TotalRentalCost - TotalPurchaseCost`
+    -   A positive value indicates the amount (in CHF) that buying saves you compared to renting. A negative value indicates how much renting saves you.
+
+##### <u>Core Scenario Costs</u>
+
+-   **Total Purchase Cost (`TotalPurchaseCost`)**:
+    -   This represents the total, all-inclusive cost of owning the property over the analysis term, factoring in the eventual sale of the asset.
+    -   **Formula**: `TotalPurchaseCost = (Direct Costs + Tax Impact) - Final Property Value + Remaining Mortgage Debt`
+    -   **`Direct Costs (`generalCostOfPurchase`)`**: Sum of all cash outflows: `InterestCosts` + `SupplementalMaintenanceCosts` + `AmortizationCosts` + `RenovationExpenses` + `AdditionalPurchaseExpensesOutput`.
+    -   **`Tax Impact (`taxDifferenceToRental`)`**: The net tax cost or benefit of owning vs. renting.
+    -   **`Final Property Value (`propertyValueEnd`)`**: The appreciated value of the property at the end of the term, treated as a "negative cost" or a final asset value.
+    -   **`Remaining Mortgage Debt (`mortgageAtEnd`)`**: The outstanding mortgage principal at the end of the term, which is still a liability.
+
+-   **Total Rental Cost (`TotalRentalCost`)**:
+    -   This represents the total financial impact of renting over the same period.
+    -   **Formula**: `TotalRentalCost = (Total Rent Payments + Additional Rental Costs) - Investment Returns - Initial Capital`
+    -   **`Total Rent Payments`**: `monthlyRent * 12 * termYears`.
+    -   **`Investment Returns (`yieldsOnAssets`)`**: The compounded return on the `investableAmount` (down payment + initial purchase costs) that a renter would have earned by investing that capital instead.
+    -   **`Initial Capital (`downPaymentOutput`)`**: The initial down payment is subtracted because it is considered principal that is returned at the end of the analysis (unlike the purchase scenario where it is tied up in the property).
+
+##### <u>Purchase Scenario Breakdown</u>
+
+-   **Interest Costs (`InterestCosts`)**:
+    -   This is the total mortgage interest paid over the analysis period (`termYears`).
+    -   **Method**: It is calculated using a **declining balance method**. A loop runs for each year of the term, calculating the interest on the *remaining mortgage balance* for that year and then subtracting the annual amortization payment before the next year's calculation. This accurately reflects how Swiss mortgages work.
+
+-   **Total Monthly Expenses (when Buying)**:
+    -   This provides a snapshot of the typical monthly cash outflow for a homeowner.
+    -   **Formula**: `MonthlyInterestPayment + MonthlyAmortizationPayment + MonthlyMaintenanceCosts`
+    -   **`MonthlyInterestPayment`**: The interest payment for the *first month*, calculated as `(mortgageAmount * mortgageRate) / 12`.
+    -   **`MonthlyAmortizationPayment`**: `annualAmortization / 12`.
+    -   **`MonthlyMaintenanceCosts`**: `annualMaintenanceCosts / 12`.
+
+##### <u>Swiss Tax Calculation Details (`taxDifferenceToRental`)</u>
+
+The tax calculation is one of the most complex and critical parts of the model. It runs a year-by-year simulation to determine the net tax difference between the buying and renting scenarios.
+
+-   **For the Homeowner (Buyer)**:
+    -   **Tax Cost - Imputed Rental Value**: An annual tax is levied on the `imputedRentalValue` at the `marginalTaxRate`. This is a uniquely Swiss tax on the theoretical rental income a homeowner could get from their property.
+    -   **Tax Savings - Mortgage Interest**: The annual mortgage interest paid is tax-deductible, creating a tax saving equal to `annualInterest * marginalTaxRate`.
+    -   **Tax Savings - Property Expenses**: Other `propertyTaxDeductions` (like maintenance) are also deductible, generating further savings.
+
+-   **For the Renter**:
+    -   **Tax Cost - Investment Income**: It is assumed the renter invests their initial capital (down payment + costs). The returns (`investmentYieldRate`) on this capital are subject to income tax at the `marginalTaxRate`.
+
+The `taxDifferenceToRental` is the cumulative sum of these annual net differences over the `termYears`.
+
 ## 📊 Usage Examples
 
 ### Example 1: First-Time Buyer
