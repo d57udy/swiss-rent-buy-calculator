@@ -97,15 +97,20 @@ class SwissRentBuyCalculator {
         let remainingBalance = mortgageAmount;
         
         for (let year = 0; year < termYears; year++) {
-            // Calculate interest on current remaining balance
-            const annualInterest = remainingBalance * mortgageRate;
-            totalInterestPaid += annualInterest;
-            
-            // Reduce balance by annual amortization payment
-            remainingBalance -= annualAmortization;
-            
-            // Prevent negative balance (mortgage fully paid)
-            if (remainingBalance < 0) remainingBalance = 0;
+            if (remainingBalance > 0) {
+                // Calculate interest on current remaining balance
+                const annualInterest = remainingBalance * mortgageRate;
+                totalInterestPaid += annualInterest;
+                
+                // Only reduce balance during amortization period
+                if (year < amortizationYears) {
+                    // Reduce balance by annual amortization payment
+                    remainingBalance -= annualAmortization;
+                    
+                    // Prevent negative balance (mortgage fully paid)
+                    if (remainingBalance < 0) remainingBalance = 0;
+                }
+            }
         }
         
         // Total interest paid over the mortgage term
@@ -115,7 +120,9 @@ class SwissRentBuyCalculator {
         const supplementalMaintenanceCosts = annualMaintenanceCosts * termYears;
         
         // Total amortization payments (principal reduction)
-        const amortizationCosts = annualAmortization * termYears;
+        // Amortization only happens during the amortization period, not the full term
+        const actualAmortizationYears = Math.min(amortizationYears, termYears);
+        const amortizationCosts = annualAmortization * actualAmortizationYears;
         
         // One-time renovation expenses
         const renovationExpenses = totalRenovations;
@@ -176,7 +183,11 @@ class SwissRentBuyCalculator {
         // Calculate year-by-year tax differences between buying and renting
         for (let year = 0; year < termYears; year++) {
             // Annual mortgage interest (tax-deductible for homeowners)
-            const annualInterest = remainingMortgage * mortgageRate;
+            // Calculate if mortgage exists (interest continues even after amortization period)
+            let annualInterest = 0;
+            if (remainingMortgage > 0) {
+                annualInterest = remainingMortgage * mortgageRate;
+            }
             const annualTaxSavingsInterest = annualInterest * marginalTaxRate;
             
             // Imputed rental value (taxable income for homeowners)
@@ -198,8 +209,11 @@ class SwissRentBuyCalculator {
             totalTaxDifference += annualNetTaxDifference;
             
             // Reduce mortgage balance for next year's interest calculation
-            remainingMortgage -= annualAmortization;
-            if (remainingMortgage < 0) remainingMortgage = 0;
+            // Only during amortization period
+            if (year < amortizationYears && remainingMortgage > 0) {
+                remainingMortgage -= annualAmortization;
+                if (remainingMortgage < 0) remainingMortgage = 0;
+            }
         }
         
         // Total tax difference over the analysis period
@@ -307,19 +321,19 @@ class SwissRentBuyCalculator {
      * 
      * @param {Object} params - Base calculation parameters (same as calculate method)
      * @param {Object} options - Search configuration options
-     * @param {number} options.minPrice - Minimum search price in CHF (default: 1,500,000)
-     * @param {number} options.maxPrice - Maximum search price in CHF (default: 4,000,000)
-     * @param {number} options.tolerance - Acceptable difference in CHF (default: 2,500)
-     * @param {number} options.maxIterations - Maximum search iterations (default: 1,000)
+     * @param {number} options.minPrice - Minimum search price in CHF (default: 100,000)
+     * @param {number} options.maxPrice - Maximum search price in CHF (default: 10,000,000)
+     * @param {number} options.tolerance - Acceptable difference in CHF (default: 1,000)
+     * @param {number} options.maxIterations - Maximum search iterations (default: 200)
      * @returns {Object} Break-even analysis results with price, iterations, and accuracy
      */
     static findBreakevenPrice(params, options = {}) {
         // Extract search parameters with Swiss market defaults
         const {
-            minPrice = 1500000,        // CHF 1.5M - reasonable minimum for Swiss properties
-            maxPrice = 4000000,        // CHF 4M - upper limit for most scenarios
-            tolerance = 2500,          // CHF 2.5K - acceptable accuracy range
-            maxIterations = 1000       // Maximum search iterations to prevent infinite loops
+            minPrice = 100000,         // CHF 100K - minimum search bound
+            maxPrice = 10000000,       // CHF 10M - maximum search bound  
+            tolerance = 1000,          // CHF 1K - acceptable accuracy range
+            maxIterations = 200        // Maximum search iterations to prevent infinite loops
         } = options;
 
         // Initialize binary search variables

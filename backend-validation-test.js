@@ -451,6 +451,25 @@ function runBackendValidation() {
         console.log('');
         console.log(passedTests === totalTests ? '🎉 ALL TESTS PASSED! 🎉' : '⚠️  SOME TESTS FAILED');
         
+        // Additional test: Auto-calculation validation
+        console.log('');
+        console.log('🔧 ADDITIONAL TEST: AUTO-CALCULATION VALIDATION');
+        console.log('─'.repeat(60));
+        
+        try {
+            const { CompleteAutoCalculationTestSuite } = require('./test-complete-auto-calculations.js');
+            const autoCalcSuccess = CompleteAutoCalculationTestSuite.runQuickValidation();
+            
+            if (autoCalcSuccess) {
+                console.log('✅ Auto-calculation systems validated successfully');
+                console.log('✅ Parameter sweeps and max-bid calculations will work correctly');
+            } else {
+                console.log('❌ Auto-calculation validation failed');
+            }
+        } catch (error) {
+            console.log('❌ Auto-calculation test error:', error.message);
+        }
+        
         return {
             totalTests,
             passedTests,

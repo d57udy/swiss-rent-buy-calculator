@@ -1,0 +1,366 @@
+[
+  {
+    "testCase": 1,
+    "description": "High-end property, 10-year term, 2% mortgage rate",
+    "params": {
+      "purchasePrice": 2100000,
+      "downPayment": 450000,
+      "mortgageRate": 2.0,
+      "annualMaintenanceCosts": 21000,
+      "amortizationYears": 10,
+      "annualAmortization": 165000,
+      "totalRenovations": 200000,
+      "additionalPurchaseCosts": 1000,
+      "imputedRentalValue": 42900,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 30.0,
+      "propertyAppreciationRate": 1.0,
+      "monthlyRent": 5500,
+      "annualRentalCosts": 20000,
+      "investmentYieldRate": 3.0,
+      "termYears": 10
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 343382.05,
+      "buyTotalCost": -88488.35,
+      "rentTotalCost": 254893.70
+    }
+  },
+  {
+    "testCase": 2,
+    "description": "Mid-range property, 8-year term, 1.8% mortgage rate",
+    "params": {
+      "purchasePrice": 1500000,
+      "downPayment": 350000,
+      "mortgageRate": 1.8,
+      "annualMaintenanceCosts": 15000,
+      "amortizationYears": 8,
+      "annualAmortization": 143750,
+      "totalRenovations": 10000,
+      "additionalPurchaseCosts": 5000,
+      "imputedRentalValue": 42900,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 30.0,
+      "propertyAppreciationRate": 1.0,
+      "monthlyRent": 2875,
+      "annualRentalCosts": 20000,
+      "investmentYieldRate": 2.8,
+      "termYears": 8
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 226884.55,
+      "buyTotalCost": -228649.55,
+      "rentTotalCost": -1765.00
+    }
+  },
+  {
+    "testCase": 3,
+    "description": "Luxury property, 15-year term, 2.3% mortgage rate",
+    "params": {
+      "purchasePrice": 4500000,
+      "downPayment": 1200000,
+      "mortgageRate": 2.3,
+      "annualMaintenanceCosts": 45000,
+      "amortizationYears": 15,
+      "annualAmortization": 143750,
+      "totalRenovations": 10000,
+      "additionalPurchaseCosts": 10000,
+      "imputedRentalValue": 42900,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 30.0,
+      "propertyAppreciationRate": 1.0,
+      "monthlyRent": 6800,
+      "annualRentalCosts": 25000,
+      "investmentYieldRate": 4.7,
+      "termYears": 15
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 99991.80,
+      "buyTotalCost": -900817.30,
+      "rentTotalCost": -800825.50
+    }
+  },
+  {
+    "testCase": 4,
+    "description": "Lower-end property, 11-year term, 1.7% mortgage rate",
+    "params": {
+      "purchasePrice": 800000,
+      "downPayment": 200000,
+      "mortgageRate": 1.7,
+      "annualMaintenanceCosts": 8000,
+      "amortizationYears": 7,
+      "annualAmortization": 25000,
+      "totalRenovations": 300,
+      "additionalPurchaseCosts": 6250,
+      "imputedRentalValue": 42900,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 30.0,
+      "propertyAppreciationRate": 2.3,
+      "monthlyRent": 2300,
+      "annualRentalCosts": 8000,
+      "investmentYieldRate": 6.0,
+      "termYears": 11
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 232084.00,
+      "buyTotalCost": -225758.10,
+      "rentTotalCost": 6325.90
+    }
+  },
+  {
+    "testCase": 5,
+    "description": "Premium property, 10-year term, 1.68% mortgage rate",
+    "params": {
+      "purchasePrice": 2000000,
+      "downPayment": 400000,
+      "mortgageRate": 1.68,
+      "annualMaintenanceCosts": 20000,
+      "amortizationYears": 9,
+      "annualAmortization": 35000,
+      "totalRenovations": 2000,
+      "additionalPurchaseCosts": 7150,
+      "imputedRentalValue": 41000,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 30.0,
+      "propertyAppreciationRate": 1.6,
+      "monthlyRent": 4500,
+      "annualRentalCosts": 13000,
+      "investmentYieldRate": 3.5,
+      "termYears": 10
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 434240.40,
+      "buyTotalCost": -331415.70,
+      "rentTotalCost": 102824.70
+    }
+  },
+  {
+    "testCase": 6,
+    "description": "Ultra-luxury property, 9-year term, 2.17% mortgage rate",
+    "params": {
+      "purchasePrice": 3500000,
+      "downPayment": 150000,
+      "mortgageRate": 2.17,
+      "annualMaintenanceCosts": 35000,
+      "amortizationYears": 6,
+      "annualAmortization": 180000,
+      "totalRenovations": 7000,
+      "additionalPurchaseCosts": 9000,
+      "imputedRentalValue": 60000,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 26.0,
+      "propertyAppreciationRate": 2.1,
+      "monthlyRent": 6367,
+      "annualRentalCosts": 11000,
+      "investmentYieldRate": 6.0,
+      "termYears": 9
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 595644.05,
+      "buyTotalCost": -68635.20,
+      "rentTotalCost": 527008.85
+    }
+  },
+  {
+    "testCase": 7,
+    "description": "Modest property, 13-year term, 0.96% mortgage rate",
+    "params": {
+      "purchasePrice": 500000,
+      "downPayment": 150000,
+      "mortgageRate": 0.96,
+      "annualMaintenanceCosts": 5000,
+      "amortizationYears": 11,
+      "annualAmortization": 10000,
+      "totalRenovations": 10000,
+      "additionalPurchaseCosts": 7646,
+      "imputedRentalValue": 60000,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 39.0,
+      "propertyAppreciationRate": 2.1,
+      "monthlyRent": 1500,
+      "annualRentalCosts": 5000,
+      "investmentYieldRate": 4.96,
+      "termYears": 13
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 26752.20,
+      "buyTotalCost": -15902.45,
+      "rentTotalCost": 10849.75
+    }
+  },
+  {
+    "testCase": 8,
+    "description": "Super-luxury property, 16-year term, 1.34% mortgage rate - RENT scenario",
+    "params": {
+      "purchasePrice": 8500000,
+      "downPayment": 2500000,
+      "mortgageRate": 1.34,
+      "annualMaintenanceCosts": 85000,
+      "amortizationYears": 15,
+      "annualAmortization": 50000,
+      "totalRenovations": 20000,
+      "additionalPurchaseCosts": 11000,
+      "imputedRentalValue": 60000,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 39.0,
+      "propertyAppreciationRate": 1.1,
+      "monthlyRent": 7800,
+      "annualRentalCosts": 40000,
+      "investmentYieldRate": 4.8,
+      "termYears": 16
+    },
+    "moneylandResult": {
+      "decision": "RENT",
+      "advantage": 367717.45,
+      "buyTotalCost": -2800199.90,
+      "rentTotalCost": -3167917.35
+    }
+  },
+  {
+    "testCase": 9,
+    "description": "High-end property, 14-year term, 0.96% mortgage rate",
+    "params": {
+      "purchasePrice": 2500000,
+      "downPayment": 650000,
+      "mortgageRate": 0.96,
+      "annualMaintenanceCosts": 25000,
+      "amortizationYears": 14,
+      "annualAmortization": 30000,
+      "totalRenovations": 10000,
+      "additionalPurchaseCosts": 6000,
+      "imputedRentalValue": 60000,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 39.0,
+      "propertyAppreciationRate": 1.1,
+      "monthlyRent": 6000,
+      "annualRentalCosts": 30000,
+      "investmentYieldRate": 6.0,
+      "termYears": 14
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 578909.30,
+      "buyTotalCost": -628062.30,
+      "rentTotalCost": -49153.00
+    }
+  },
+  {
+    "testCase": 10,
+    "description": "Premium property, 10-year term, 1.27% mortgage rate",
+    "params": {
+      "purchasePrice": 2000000,
+      "downPayment": 400000,
+      "mortgageRate": 1.27,
+      "annualMaintenanceCosts": 20000,
+      "amortizationYears": 10,
+      "annualAmortization": 28300,
+      "totalRenovations": 10000,
+      "additionalPurchaseCosts": 7352,
+      "imputedRentalValue": 60000,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 39.0,
+      "propertyAppreciationRate": 1.64,
+      "monthlyRent": 5487,
+      "annualRentalCosts": 20000,
+      "investmentYieldRate": 5.0,
+      "termYears": 10
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 540727.10,
+      "buyTotalCost": -338468.60,
+      "rentTotalCost": 202258.50
+    }
+  },
+  {
+    "testCase": 11,
+    "description": "CHF 2.75M property, 12-year term, 1.89% mortgage rate - BUY scenario",
+    "params": {
+      "purchasePrice": 2750000,
+      "downPayment": 550000,
+      "mortgageRate": 1.89,
+      "annualMaintenanceCosts": 34375,
+      "amortizationYears": 12,
+      "annualAmortization": 183333,
+      "totalRenovations": 0,
+      "additionalPurchaseCosts": 0,
+      "imputedRentalValue": 49400,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 28.0,
+      "propertyAppreciationRate": 2.0,
+      "monthlyRent": 7600,
+      "annualRentalCosts": 20000,
+      "investmentYieldRate": 3.5,
+      "termYears": 12
+    },
+    "moneylandResult": {
+      "decision": "BUY",
+      "advantage": 533994.20,
+      "buyTotalCost": -1267788.80,
+      "rentTotalCost": -733794.60
+    }
+  },
+  {
+    "testCase": 12,
+    "description": "CHF 3M property, 21-year term, 1.89% mortgage rate - RENT scenario",
+    "params": {
+      "purchasePrice": 3000000,
+      "downPayment": 600000,
+      "mortgageRate": 1.89,
+      "annualMaintenanceCosts": 37500,
+      "amortizationYears": 21,
+      "annualAmortization": 114286,
+      "totalRenovations": 0,
+      "additionalPurchaseCosts": 0,
+      "imputedRentalValue": 54340,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 28.0,
+      "propertyAppreciationRate": 2.0,
+      "monthlyRent": 8360,
+      "annualRentalCosts": 20000,
+      "investmentYieldRate": 3.5,
+      "termYears": 21
+    },
+    "moneylandResult": {
+      "decision": "RENT",
+      "advantage": 762354.20,
+      "buyTotalCost": -1535641.80,
+      "rentTotalCost": -2297996.00
+    }
+  },
+  {
+    "testCase": 13,
+    "description": "CHF 3.5M property, 18-year term, 1.89% mortgage rate - RENT scenario",
+    "params": {
+      "purchasePrice": 3500000,
+      "downPayment": 700000,
+      "mortgageRate": 1.89,
+      "annualMaintenanceCosts": 43750,
+      "amortizationYears": 18,
+      "annualAmortization": 155556,
+      "totalRenovations": 0,
+      "additionalPurchaseCosts": 0,
+      "imputedRentalValue": 59800,
+      "propertyTaxDeduction": 13000,
+      "marginalTaxRate": 28.0,
+      "propertyAppreciationRate": 2.0,
+      "monthlyRent": 9200,
+      "annualRentalCosts": 20000,
+      "investmentYieldRate": 3.5,
+      "termYears": 18
+    },
+    "moneylandResult": {
+      "decision": "RENT",
+      "advantage": 372195.60,
+      "buyTotalCost": -2727804.40,
+      "rentTotalCost": -3100000.00
+    }
+  }
+]

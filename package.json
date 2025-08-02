@@ -5,6 +5,11 @@
   "main": "calculator.js",
   "scripts": {
     "test": "node backend-validation-test.js",
+    "test:all": "node run-all-tests.js",
+    "test:shell": "./run-tests.sh",
+    "test:backend": "node backend-validation-test.js",
+    "test:auto-calc": "node test-complete-auto-calculations.js",
+    "test:realistic": "node realistic-parameter-validation.js",
     "test:comprehensive": "node comprehensive-test-runner.js",
     "test:playwright": "playwright test test-parameter-sweep.js",
     "test:playwright:headed": "playwright test test-parameter-sweep.js --headed",
