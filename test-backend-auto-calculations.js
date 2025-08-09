@@ -25,6 +25,7 @@ class BackendAutoCalculationTester {
             marginalTaxRate: baseParams.marginalTaxRate / 100,
             termYears: baseParams.termYears,
             amortizationYears: baseParams.amortizationYears,
+            scenarioMode: baseParams.scenarioMode || 'equalConsumption',
             
             // Auto-calculated values
             annualMaintenanceCosts: Math.round(purchasePrice * 0.0125), // 1.25% Swiss standard

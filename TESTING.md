@@ -80,6 +80,15 @@ npm test
 - **Duration**: ~90 seconds
 - **Critical**: ✅ Yes
 
+### 6. Equal-Savings Scenario Tests (`test-equal-savings.js`)
+- **Purpose**: Validates the optional Equal-Savings comparison mode ("invest the difference")
+- **Checks**:
+  - Enabling equal-savings reduces `TotalRentalCost` compared to equal-consumption
+  - Renter is credited with amortization-equivalent contributions and their growth
+  - Investment income tax is applied to renter gains
+- **Duration**: ~10 seconds
+- **Critical**: ✅ Yes
+
 ## Test Results Interpretation
 
 ### Success Criteria

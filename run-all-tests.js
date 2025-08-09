@@ -61,6 +61,13 @@ class TestRunner {
                 critical: true
             },
             {
+                name: 'Equal-Savings Scenario Tests',
+                description: 'Validates equal-savings toggle behavior and outputs',
+                script: 'test-equal-savings.js',
+                timeout: 60000, // 1 minute
+                critical: true
+            },
+            {
                 name: 'Manual Moneyland Test Cases',
                 description: 'Manually collected moneyland.ch scenarios validation',
                 script: 'test-moneyland-manual-cases.js',

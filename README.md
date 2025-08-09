@@ -6,13 +6,13 @@ A comprehensive, production-ready web application for analyzing the financial de
 
 **Created by**: d57udy  
 **Purpose**: Facilitate informed home purchase decisions in Switzerland  
-**Inspiration**: [moneyland.ch rent vs buy calculator](https://www.moneyland.ch/en/rent-or-buy-calculator)  
+**Inspiration**: Leading Swiss rent vs buy calculators (e.g., moneyland.ch)  
 **Enhanced Features**: Maximum bid finder, parameter sweep analysis, comprehensive validation
 
 ## ✨ Key Features
 
 ### 🏠 Single Calculation Analysis
-- **moneyland.ch-Compatible Output**: Complete breakdown matching the industry-standard format with all cost components
+- **Professional Breakdown**: Complete breakdown with all cost components in an industry-standard format
 - **Year-by-Year Timeline Analysis**: Interactive table showing mortgage balance, costs, and cumulative advantage progression
 - **Break-even Point Identification**: Clear visualization of when buying becomes advantageous over renting
 - **Swiss-Specific Modeling**: Implements Swiss mortgage regulations, tax laws, and market standards
@@ -143,14 +143,40 @@ When the user clicks the **"Calculate"** button, the following steps occur:
 4.  **Cost-Benefit Analysis**: The total net costs of both scenarios are calculated. The final recommendation is determined by comparing these two totals.
 5.  **Result Display**: The comprehensive results, including the final "BUY" or "RENT" decision, the financial advantage, and a detailed cost breakdown, are formatted and displayed in the results section of the UI.
 
+##### Comparison Modes
+- **Equal Consumption (default, baseline)**: Renter invests only the initial capital not tied up in the property (down payment + purchase costs). Amortization is treated as equity building on the buy side and not mirrored as renter savings.
+- **Equal Savings (invest the difference)**: Renter also contributes an amount each year equal to the buyer's amortization during the amortization period, with investment growth and investment-income tax applied. Toggle this in the Single Calculation tab under "Comparison Mode".
+
+###### Deeper logic and guidance
+The two modes answer different behavioral questions. Both are valid, but serve different purposes.
+
+- **Equal Consumption (user-cost baseline)**
+  - Purpose: Compare the economic cost of housing services with typical banking/regulatory framing.
+  - Mechanics:
+    - Buy: unrecoverable costs (interest, maintenance, net taxes) minus the asset value at end, plus remaining mortgage.
+    - Rent: rent + rental costs. The renter invests only the upfront capital not tied into the home (down payment + purchase costs). Investment income is taxed at your marginal rate.
+    - Buyer amortization is not treated as a cost; it is equity building and is already captured via “− property value + remaining mortgage”.
+  - When to use: Baseline comparisons; affordability framing; common in professional calculators.
+
+- **Equal Savings (invest-the-difference / savings-parity)**
+  - Purpose: Test disciplined saving behavior where the renter commits to invest the buyer’s amortization-equivalent each year.
+  - Mechanics:
+    - In addition to the initial invested capital, the renter contributes the annual amortization for each year of the amortization period; contributions compound at the investment yield; investment gains are taxed.
+    - Rental total cost subtracts both the invested down payment and the amortization-equivalent contributions (principal), mirroring the buyer’s equity build.
+  - When to use: Sensitivity when market returns are expected to exceed property appreciation; “what if I invest like a machine?” scenarios; financial planning discussions about savings discipline.
+
+Notes:
+- Monthly expenses (interest + amortization + maintenance) are informational and identical across modes; the mode affects the long-horizon net-cost comparison.
+- Max-bid and parameter sweep inherit the selected mode from the Single Calculation tab.
+
 ---
 
 #### Enhanced Output Features (Latest Version)
 
 The single calculation output has been significantly enhanced to provide professional-grade analysis:
 
-##### 🏦 **moneyland.ch-Compatible Breakdown**
-The output now matches the exact format and structure used by moneyland.ch, including:
+##### 🏦 **Professional Breakdown**
+The output follows an industry-standard structure, including:
 - **Purchase Cost Breakdown**: Interest costs, supplemental and maintenance costs, amortization, renovation expenses, additional purchase expenses, general cost of purchase, tax difference to rental, minus property value, mortgage at end of period, and total purchase cost
 - **Rental Cost Breakdown**: General cost of rental, excluding yields on assets, excluding down-payment, and total rental cost
 - **Consistent Decimal Formatting**: All monetary values formatted with proper decimal places (.00) for professional presentation
@@ -563,7 +589,7 @@ The authors and contributors assume **no liability** for:
 ## 🙏 Acknowledgments
 
 ### Inspiration & Methodology
-- **moneyland.ch**: Original calculator methodology and Swiss market insights
+- Inspired by Swiss market methodology and insights
 - **Swiss Banking Association**: Mortgage calculation standards and regulations
 - **Swiss Tax Authorities**: Imputed rental value and property tax guidelines
 - **Real Estate Industry**: Market data and transaction cost analysis
@@ -593,4 +619,4 @@ The authors and contributors assume **no liability** for:
 
 **Created with ❤️ for the Swiss real estate community**
 
-*This is an independent implementation created for educational purposes. Not affiliated with or endorsed by moneyland.ch or any Swiss financial institution.*
+*This is an independent implementation created for educational purposes. Not affiliated with or endorsed by any Swiss financial institution.*

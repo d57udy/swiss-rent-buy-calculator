@@ -80,7 +80,10 @@ class SwissRentBuyCalculator {
             monthlyRent = 5500,                // CHF 5.5K - comparable rent
             annualRentalCosts = 20000,         // CHF 20K - rental supplemental costs
             investmentYieldRate = 0.00,        // 0% - conservative investment return
-            termYears = 10                     // 10 years - standard analysis period
+            termYears = 10,                    // 10 years - standard analysis period
+            // Comparison scenario mode:
+            // 'equalConsumption' (baseline) or 'equalSavings' (invest the difference: amortization-equivalent contributions)
+            scenarioMode = 'equalConsumption'
         } = params;
 
         // ============================================================================
@@ -172,27 +175,34 @@ class SwissRentBuyCalculator {
         let totalTaxDifference = 0;
         let remainingMortgage = mortgageAmount;
         
-        // Calculate tax on investment income for rental scenario
-        // This is the amount that would be invested if not buying (down payment + costs)
-        const investableAmount = downPayment + additionalPurchaseCosts;
+        // Calculate renter investment base and contributions depending on scenario
+        const investableAmount = downPayment + additionalPurchaseCosts; // upfront capital not tied in house
+        const contributionYears = Math.min(amortizationYears, termYears);
+        const totalSavingsContributions = scenarioMode === 'equalSavings' ? (annualAmortization * contributionYears) : 0;
+
+        // Future value of initial investable amount at end of term
+        const fvInitial = investableAmount * Math.pow(1 + investmentYieldRate, termYears);
+        const gainsInitial = fvInitial - investableAmount;
+
+        // Future value of annual contributions (ordinary annuity) if equalSavings
+        // FV at termYears = A * [((1+r)^n - 1)/r] * (1+r)^(T - n)
+        let fvContribs = 0;
+        let gainsContribs = 0;
+        if (scenarioMode === 'equalSavings' && annualAmortization > 0 && contributionYears > 0) {
+            if (investmentYieldRate === 0) {
+                // No growth; FV is just principal contributions
+                fvContribs = annualAmortization * contributionYears;
+            } else {
+                fvContribs = annualAmortization * ((Math.pow(1 + investmentYieldRate, contributionYears) - 1) / investmentYieldRate) * Math.pow(1 + investmentYieldRate, termYears - contributionYears);
+            }
+            gainsContribs = fvContribs - (annualAmortization * contributionYears);
+        }
+
+        // Total investment gains for renter
+        const totalInvestmentGains = gainsInitial + gainsContribs;
         
-        // Simple interest calculation for tax purposes
-        const simpleInterestTotal = investableAmount * investmentYieldRate * termYears;
-        
-        // Compound interest calculation (actual investment growth)
-        const compoundInterestTotal = investableAmount * (Math.pow(1 + investmentYieldRate, termYears) - 1);
-        
-        // Tax on simple interest portion
-        const simpleInterestTaxTotal = simpleInterestTotal * marginalTaxRate;
-        
-        // Tax on compound interest gains (growth beyond simple interest)
-        const compoundInterestGains = compoundInterestTotal - simpleInterestTotal;
-        const compoundInterestGainsTax = compoundInterestGains * marginalTaxRate;
-        
-        // Total tax on investment income
-        const totalInvestmentIncomeTax = simpleInterestTaxTotal + compoundInterestGainsTax;
-        
-        // Annual average investment income tax
+        // Total tax on renter's investment income over the term
+        const totalInvestmentIncomeTax = totalInvestmentGains * marginalTaxRate;
         const annualInvestmentIncomeTax = totalInvestmentIncomeTax / termYears;
         
         // Calculate year-by-year tax differences and add to yearly breakdown
@@ -252,9 +262,12 @@ class SwissRentBuyCalculator {
         
         // RENTAL SCENARIO CALCULATIONS
         const generalCostOfRental = (monthlyRent * 12 * termYears) + (annualRentalCosts * termYears);
-        const yieldsOnAssets = investableAmount * (Math.pow(1 + investmentYieldRate, termYears) - 1);
+        const yieldsOnAssets = totalInvestmentGains; // gains only (not principal)
         const downPaymentOutput = downPayment;
-        const totalRentalCost = generalCostOfRental - yieldsOnAssets - downPaymentOutput;
+        const savingsContributionsOutput = totalSavingsContributions; // principal contributed by renter in equal-savings
+        const totalRentalCost = scenarioMode === 'equalSavings'
+            ? (generalCostOfRental - yieldsOnAssets - downPaymentOutput - savingsContributionsOutput)
+            : (generalCostOfRental - yieldsOnAssets - downPaymentOutput);
         
         // FINAL COMPARISON
         const resultValue = totalRentalCost - totalPurchaseCost;
@@ -276,6 +289,14 @@ class SwissRentBuyCalculator {
         const monthlyAmortizationPayment = Math.round(annualAmortization / 12);
         const monthlyMaintenanceCosts = Math.round(annualMaintenanceCosts / 12);
         const totalMonthlyExpenses = monthlyInterestPayment + monthlyAmortizationPayment + monthlyMaintenanceCosts;
+
+        // Calculate monthly expenses for renting scenario
+        const monthlyRentPayment = Math.round(monthlyRent);
+        const monthlyRentalCosts = Math.round(annualRentalCosts / 12);
+        const monthlySavingsContribution = (scenarioMode === 'equalSavings' && amortizationYears > 0)
+            ? Math.round(annualAmortization / 12)
+            : 0;
+        const totalMonthlyRentingExpenses = monthlyRentPayment + monthlyRentalCosts + monthlySavingsContribution;
         
         // Calculate cumulative costs for yearly breakdown - ensure final year matches main calculation exactly
         for (let year = 0; year < termYears; year++) {
@@ -309,20 +330,31 @@ class SwissRentBuyCalculator {
                 // Calculate cumulative rental costs up to this year
                 const cumulativeRentalCosts = yearsToDate * (monthlyRent * 12 + annualRentalCosts);
                 
-                // Calculate investment returns for renter scenario up to this year
-                const investmentValueCurrentYear = investableAmount * Math.pow(1 + investmentYieldRate, yearsToDate);
-                const investmentGains = investmentValueCurrentYear - investableAmount;
+                // Calculate investment returns for renter scenario up to this year (mode-aware)
+                const fvInitialToDate = investableAmount * Math.pow(1 + investmentYieldRate, yearsToDate);
+                const gainsInitialToDate = fvInitialToDate - investableAmount;
+
+                const contribYearsToDate = scenarioMode === 'equalSavings' ? Math.min(contributionYears, yearsToDate) : 0;
+                let fvContribsToDate = 0;
+                if (scenarioMode === 'equalSavings' && annualAmortization > 0 && contribYearsToDate > 0) {
+                    if (investmentYieldRate === 0) {
+                        fvContribsToDate = annualAmortization * contribYearsToDate;
+                    } else {
+                        fvContribsToDate = annualAmortization * ((Math.pow(1 + investmentYieldRate, contribYearsToDate) - 1) / investmentYieldRate);
+                    }
+                }
+                const gainsContribsToDate = fvContribsToDate - (annualAmortization * contribYearsToDate);
+                const investmentGains = gainsInitialToDate + gainsContribsToDate;
                 
-                // Calculate tax on investment gains up to this year (using same logic as main calculation)
-                const simpleInterestPortion = investableAmount * investmentYieldRate * yearsToDate;
-                const compoundGains = investmentGains - simpleInterestPortion;
-                const totalInvestmentTax = simpleInterestPortion * marginalTaxRate + compoundGains * marginalTaxRate;
+                // Apply tax on realized gains up to this year using same rate
+                const totalInvestmentTax = investmentGains * marginalTaxRate;
                 
                 // Net purchase cost at end of this year (using same formula as main calculation)
                 yearData.totalPurchaseCostToDate = cumulativePurchaseCosts - propertyValueCurrentYear + yearData.endingBalance;
                 
                 // Net rental cost at end of this year (using same formula as main calculation)  
-                yearData.totalRentalCostToDate = cumulativeRentalCosts - investmentGains + totalInvestmentTax - downPayment;
+                const contributionsToDate = scenarioMode === 'equalSavings' ? (annualAmortization * contribYearsToDate) : 0;
+                yearData.totalRentalCostToDate = (cumulativeRentalCosts - investmentGains + totalInvestmentTax - downPayment - contributionsToDate);
                 
                 // Cumulative advantage (positive means buying is better)
                 yearData.cumulativeAdvantage = yearData.totalRentalCostToDate - yearData.totalPurchaseCostToDate;
@@ -371,16 +403,24 @@ class SwissRentBuyCalculator {
             MonthlyAmortizationPayment: monthlyAmortizationPayment,
             MonthlyMaintenanceCosts: monthlyMaintenanceCosts,
             TotalMonthlyExpenses: totalMonthlyExpenses,
+
+            // Monthly expenses for renting scenario
+            MonthlyRentPayment: monthlyRentPayment,
+            MonthlyRentalCosts: monthlyRentalCosts,
+            MonthlySavingsContribution: monthlySavingsContribution,
+            TotalMonthlyRentingExpenses: totalMonthlyRentingExpenses,
             
             // Rental cost breakdown
             GeneralCostOfRental: generalCostOfRental,
             ExcludingYieldsOnAssets: -yieldsOnAssets,
             ExcludingDownPayment: -downPaymentOutput,
+            ExcludingSavingsContributions: scenarioMode === 'equalSavings' ? -savingsContributionsOutput : 0,
             TotalRentalCost: totalRentalCost,
             
             // Metadata
             MortgageAmount: Math.round(mortgageAmount),
             YearlyBreakdown: yearlyBreakdown,
+            ScenarioMode: scenarioMode,
             ErrorMsg: null
         };
     }
