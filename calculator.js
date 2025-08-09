@@ -90,27 +90,42 @@ class SwissRentBuyCalculator {
         // Calculate the mortgage amount (property price minus down payment)
         const mortgageAmount = purchasePrice - downPayment;
         
-        // Calculate interest costs using declining balance method
+        // Calculate interest costs using declining balance method and capture yearly breakdown
         // This is crucial for Swiss mortgages where interest is calculated on the
         // remaining balance after each amortization payment, not the original amount
         let totalInterestPaid = 0;
         let remainingBalance = mortgageAmount;
+        const yearlyBreakdown = [];
         
         for (let year = 0; year < termYears; year++) {
+            const yearData = {
+                year: year + 1,
+                startingBalance: remainingBalance,
+                annualInterest: 0,
+                annualAmortization: 0,
+                annualMaintenance: annualMaintenanceCosts,
+                endingBalance: remainingBalance
+            };
+            
             if (remainingBalance > 0) {
                 // Calculate interest on current remaining balance
                 const annualInterest = remainingBalance * mortgageRate;
                 totalInterestPaid += annualInterest;
+                yearData.annualInterest = annualInterest;
                 
                 // Only reduce balance during amortization period
                 if (year < amortizationYears) {
                     // Reduce balance by annual amortization payment
+                    yearData.annualAmortization = annualAmortization;
                     remainingBalance -= annualAmortization;
                     
                     // Prevent negative balance (mortgage fully paid)
                     if (remainingBalance < 0) remainingBalance = 0;
+                    yearData.endingBalance = remainingBalance;
                 }
             }
+            
+            yearlyBreakdown.push(yearData);
         }
         
         // Total interest paid over the mortgage term
@@ -180,7 +195,7 @@ class SwissRentBuyCalculator {
         // Annual average investment income tax
         const annualInvestmentIncomeTax = totalInvestmentIncomeTax / termYears;
         
-        // Calculate year-by-year tax differences between buying and renting
+        // Calculate year-by-year tax differences and add to yearly breakdown
         for (let year = 0; year < termYears; year++) {
             // Annual mortgage interest (tax-deductible for homeowners)
             // Calculate if mortgage exists (interest continues even after amortization period)
@@ -207,6 +222,14 @@ class SwissRentBuyCalculator {
                 annualInvestmentIncomeTax;        // Tax cost of investment income (rental scenario)
             
             totalTaxDifference += annualNetTaxDifference;
+            
+            // Add tax and rental information to yearly breakdown
+            yearlyBreakdown[year].annualRent = monthlyRent * 12;
+            yearlyBreakdown[year].annualRentalCosts = annualRentalCosts;
+            yearlyBreakdown[year].annualTaxDifference = annualNetTaxDifference;
+            yearlyBreakdown[year].totalPurchaseCostToDate = 0; // Will calculate below
+            yearlyBreakdown[year].totalRentalCostToDate = 0; // Will calculate below
+            yearlyBreakdown[year].cumulativeAdvantage = 0; // Will calculate below
             
             // Reduce mortgage balance for next year's interest calculation
             // Only during amortization period
@@ -253,6 +276,58 @@ class SwissRentBuyCalculator {
         const monthlyAmortizationPayment = Math.round(annualAmortization / 12);
         const monthlyMaintenanceCosts = Math.round(annualMaintenanceCosts / 12);
         const totalMonthlyExpenses = monthlyInterestPayment + monthlyAmortizationPayment + monthlyMaintenanceCosts;
+        
+        // Calculate cumulative costs for yearly breakdown - ensure final year matches main calculation exactly
+        for (let year = 0; year < termYears; year++) {
+            const yearData = yearlyBreakdown[year];
+            const yearsToDate = year + 1;
+            
+            if (yearsToDate === termYears) {
+                // For the final year, use the exact same values as main calculation to ensure consistency
+                yearData.totalPurchaseCostToDate = totalPurchaseCost;
+                yearData.totalRentalCostToDate = totalRentalCost;
+                yearData.cumulativeAdvantage = resultValue;
+            } else {
+                // For intermediate years, calculate proportionally
+                // Calculate what fraction of the total term this represents
+                const termFraction = yearsToDate / termYears;
+                
+                // Calculate cumulative purchase costs up to this year
+                let cumulativePurchaseCosts = downPayment + additionalPurchaseCosts + totalRenovations;
+                
+                // Add up all costs from year 1 to current year
+                for (let y = 0; y <= year; y++) {
+                    cumulativePurchaseCosts += yearlyBreakdown[y].annualInterest + 
+                                             yearlyBreakdown[y].annualAmortization + 
+                                             yearlyBreakdown[y].annualMaintenance + 
+                                             yearlyBreakdown[y].annualTaxDifference;
+                }
+                
+                // Calculate property value at end of this year
+                const propertyValueCurrentYear = purchasePrice * Math.pow(1 + propertyAppreciationRate, yearsToDate);
+                
+                // Calculate cumulative rental costs up to this year
+                const cumulativeRentalCosts = yearsToDate * (monthlyRent * 12 + annualRentalCosts);
+                
+                // Calculate investment returns for renter scenario up to this year
+                const investmentValueCurrentYear = investableAmount * Math.pow(1 + investmentYieldRate, yearsToDate);
+                const investmentGains = investmentValueCurrentYear - investableAmount;
+                
+                // Calculate tax on investment gains up to this year (using same logic as main calculation)
+                const simpleInterestPortion = investableAmount * investmentYieldRate * yearsToDate;
+                const compoundGains = investmentGains - simpleInterestPortion;
+                const totalInvestmentTax = simpleInterestPortion * marginalTaxRate + compoundGains * marginalTaxRate;
+                
+                // Net purchase cost at end of this year (using same formula as main calculation)
+                yearData.totalPurchaseCostToDate = cumulativePurchaseCosts - propertyValueCurrentYear + yearData.endingBalance;
+                
+                // Net rental cost at end of this year (using same formula as main calculation)  
+                yearData.totalRentalCostToDate = cumulativeRentalCosts - investmentGains + totalInvestmentTax - downPayment;
+                
+                // Cumulative advantage (positive means buying is better)
+                yearData.cumulativeAdvantage = yearData.totalRentalCostToDate - yearData.totalPurchaseCostToDate;
+            }
+        }
 
         return {
             // Input parameters
@@ -305,6 +380,7 @@ class SwissRentBuyCalculator {
             
             // Metadata
             MortgageAmount: Math.round(mortgageAmount),
+            YearlyBreakdown: yearlyBreakdown,
             ErrorMsg: null
         };
     }

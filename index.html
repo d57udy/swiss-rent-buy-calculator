@@ -1163,29 +1163,80 @@
             
             resultsDiv.innerHTML = `
                 <div style="margin-bottom: 20px; padding: 20px; background: white; border-radius: 8px; border-left: 4px solid ${decisionClass === 'buy' ? '#34c759' : decisionClass === 'rent' ? '#ff3b30' : '#ff9500'};">
-                    <div class="result-item decision-${decisionClass}" style="font-size: 18px; font-weight: 600; margin-bottom: 10px; border-bottom: none;">
-                        <span>Decision: ${result.Decision}</span>
-                        <span>${result.ResultValue > 0 ? '+' : ''}CHF ${Math.round(Math.abs(result.ResultValue)).toLocaleString()}</span>
+                    <div style="font-size: 18px; font-weight: 600; margin-bottom: 15px; text-align: center;">
+                        <div style="margin-bottom: 10px;">${result.CompareText}</div>
+                        <div style="font-size: 24px; color: ${decisionClass === 'buy' ? '#34c759' : decisionClass === 'rent' ? '#ff3b30' : '#ff9500'};">
+                            ${result.Decision}
+                        </div>
                     </div>
-                    <div style="font-size: 16px; line-height: 1.4;">
-                        <strong>${result.CompareText}</strong>
+                </div>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #1d1d1f; margin-bottom: 15px; border-bottom: 2px solid #34c759; padding-bottom: 8px;">
+                        Breakdown of purchase costs
+                    </h3>
+                    <div class="result-item">
+                        <span>Interest costs</span>
+                        <span>CHF ${Math.round(result.InterestCosts).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Supplemental and maintenance costs</span>
+                        <span>CHF ${Math.round(result.SupplementalMaintenanceCosts).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Amortization</span>
+                        <span>CHF ${Math.round(result.AmortizationCosts).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Renovation expenses</span>
+                        <span>CHF ${Math.round(result.RenovationExpenses).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Additional purchase expenses</span>
+                        <span>CHF ${Math.round(result.AdditionalPurchaseExpensesOutput).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item" style="font-weight: 600; background-color: #f0f8ff;">
+                        <span>General cost of purchase</span>
+                        <span>CHF ${Math.round(result.GeneralCostOfPurchase).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Tax difference to rental</span>
+                        <span>CHF ${Math.round(result.TaxDifferenceToRental).toLocaleString()}.${Math.abs(Math.round((result.TaxDifferenceToRental % 1) * 100)).toString().padStart(2, '0')}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Minus property value</span>
+                        <span>CHF ${Math.round(result.MinusPropertyValue).toLocaleString()}.${Math.abs(Math.round((result.MinusPropertyValue % 1) * 100)).toString().padStart(2, '0')}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Mortgage at the end of the relevant time period</span>
+                        <span>CHF ${Math.round(result.MortgageAtEndOfRelevantTimePeriod).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item" style="font-weight: 600; background-color: #f0f8ff;">
+                        <span>Total purchase cost</span>
+                        <span>CHF ${Math.round(result.TotalPurchaseCost).toLocaleString()}.${Math.abs(Math.round((result.TotalPurchaseCost % 1) * 100)).toString().padStart(2, '0')}</span>
                     </div>
                 </div>
-                <div class="result-item">
-                    <span>Purchase Price:</span>
-                    <span>CHF ${result.PurchasePrice.toLocaleString()}</span>
-                </div>
-                <div class="result-item">
-                    <span>Down Payment:</span>
-                    <span>CHF ${result.DownPayment.toLocaleString()}</span>
-                </div>
-                <div class="result-item">
-                    <span>Mortgage Amount:</span>
-                    <span>CHF ${result.MortgageAmount.toLocaleString()}</span>
-                </div>
-                <div class="result-item">
-                    <span>Interest Costs (${result.TermYears} years):</span>
-                    <span>CHF ${Math.round(result.InterestCosts).toLocaleString()}</span>
+                
+                <div style="margin-bottom: 25px;">
+                    <h3 style="color: #1d1d1f; margin-bottom: 15px; border-bottom: 2px solid #ff3b30; padding-bottom: 8px;">
+                        Rent
+                    </h3>
+                    <div class="result-item">
+                        <span>General cost of rental</span>
+                        <span>CHF ${Math.round(result.GeneralCostOfRental).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Excluding yields on assets</span>
+                        <span>CHF ${Math.round(result.ExcludingYieldsOnAssets).toLocaleString()}.${Math.abs(Math.round((result.ExcludingYieldsOnAssets % 1) * 100)).toString().padStart(2, '0')}</span>
+                    </div>
+                    <div class="result-item">
+                        <span>Excluding down-payment</span>
+                        <span>CHF ${Math.round(result.ExcludingDownPayment).toLocaleString()}.00</span>
+                    </div>
+                    <div class="result-item" style="font-weight: 600; background-color: #f0f8ff;">
+                        <span>Total rental cost</span>
+                        <span>CHF ${Math.round(result.TotalRentalCost).toLocaleString()}.${Math.abs(Math.round((result.TotalRentalCost % 1) * 100)).toString().padStart(2, '0')}</span>
+                    </div>
                 </div>
                 
                 <div style="margin: 20px 0; padding: 15px; background: #f0f8ff; border-radius: 8px; border-left: 4px solid #007aff;">
@@ -1208,13 +1259,51 @@
                     </div>
                 </div>
                 
-                <div class="result-item">
-                    <span>Total Purchase Cost:</span>
-                    <span>CHF ${Math.round(result.TotalPurchaseCost).toLocaleString()}</span>
-                </div>
-                <div class="result-item">
-                    <span>Total Rental Cost:</span>
-                    <span>CHF ${Math.round(result.TotalRentalCost).toLocaleString()}</span>
+                <div style="margin-top: 30px;">
+                    <h3 style="color: #1d1d1f; margin-bottom: 15px; border-bottom: 2px solid #007aff; padding-bottom: 8px;">
+                        Year-by-Year Analysis
+                    </h3>
+                    <div style="overflow-x: auto; margin-bottom: 15px;">
+                        <table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                            <thead>
+                                <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
+                                    <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #495057;">Year</th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Mortgage Balance<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Interest<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Amortization<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Maintenance<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Annual Rent<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Cumulative<br>Buy Cost<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Cumulative<br>Rent Cost<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                    <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Advantage<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${result.YearlyBreakdown.map((yearData, index) => `
+                                    <tr style="border-bottom: 1px solid #dee2e6; ${index % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;'}">
+                                        <td style="padding: 10px 8px; font-weight: 600;">${yearData.year}</td>
+                                        <td style="padding: 10px 8px; text-align: right;">${Math.round(yearData.endingBalance).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right;">${Math.round(yearData.annualInterest).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right;">${Math.round(yearData.annualAmortization).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right;">${Math.round(yearData.annualMaintenance).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right;">${Math.round(yearData.annualRent).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right; ${yearData.totalPurchaseCostToDate < 0 ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">${yearData.totalPurchaseCostToDate >= 0 ? '' : '-'}${Math.abs(Math.round(yearData.totalPurchaseCostToDate)).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right; ${yearData.totalRentalCostToDate < 0 ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">${yearData.totalRentalCostToDate >= 0 ? '' : '-'}${Math.abs(Math.round(yearData.totalRentalCostToDate)).toLocaleString()}</td>
+                                        <td style="padding: 10px 8px; text-align: right; font-weight: 600; ${yearData.cumulativeAdvantage > 0 ? 'color: #28a745;' : yearData.cumulativeAdvantage < 0 ? 'color: #dc3545;' : 'color: #6c757d;'}">
+                                            <span style="font-size: 11px; margin-right: 4px;">${yearData.cumulativeAdvantage > 0 ? 'BUY' : yearData.cumulativeAdvantage < 0 ? 'RENT' : 'EVEN'}</span>${yearData.cumulativeAdvantage >= 0 ? '+' : ''}${Math.round(yearData.cumulativeAdvantage).toLocaleString()}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 8px; font-size: 13px; line-height: 1.5;">
+                        <strong>How to read this table:</strong><br>
+                        • <strong>Mortgage Balance:</strong> Remaining mortgage debt at end of year<br>
+                        • <strong>Cumulative Costs:</strong> Total net cost considering property appreciation (buy) and investment returns (rent)<br>
+                        • <strong>Advantage:</strong> Positive values favor buying, negative values favor renting<br>
+                        • <strong>Colors:</strong> <span style="color: #28a745; font-weight: bold;">Green</span> = profitable/advantageous, <span style="color: #dc3545; font-weight: bold;">Red</span> = costly/disadvantageous
+                    </div>
                 </div>
             `;
             resultsDiv.style.display = 'block';
