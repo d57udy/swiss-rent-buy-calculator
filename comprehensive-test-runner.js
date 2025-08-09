@@ -9,7 +9,18 @@ const { execSync } = require('child_process');
 
 // Import our validation modules
 const backendValidation = require('./backend-validation-test.js');
-const randomSampleValidation = require('./random-sample-validation.js');
+let randomSampleValidation;
+try {
+    randomSampleValidation = require('./random-sample-validation.js');
+} catch (e) {
+    // Provide a safe fallback stub when random-sample-validation.js is not present
+    randomSampleValidation = {
+        main: () => {
+            console.warn('random-sample-validation.js not found; skipping random sample generation.');
+            return [];
+        }
+    };
+}
 
 class ComprehensiveTestRunner {
     constructor() {
