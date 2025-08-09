@@ -534,31 +534,32 @@ git push origin feature/new-functionality
 
 ## 📄 License
 
-This project is licensed under the **Creative Commons Attribution-ShareAlike 4.0 International License (CC BY-SA 4.0)**.
+This project is licensed under the **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International License (CC BY-NC-SA 4.0)**.
 
-[![CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/88x31.png)](https://creativecommons.org/licenses/by-sa/4.0/)
+[View the license](https://creativecommons.org/licenses/by-nc-sa/4.0/) — Commercial use is not permitted.
 
-### CC BY-SA 4.0 License Summary
+### CC BY-NC-SA 4.0 Summary
 
 **You are free to:**
 - ✅ **Share** — copy and redistribute the material in any medium or format
 - ✅ **Adapt** — remix, transform, and build upon the material for any purpose, even commercially
 
 **Under the following terms:**
-- 📝 **Attribution** — You must give appropriate credit to d57udy, provide a link to the license, and indicate if changes were made. You may do so in any reasonable manner, but not in any way that suggests the licensor endorses you or your use.
-- 🔄 **ShareAlike** — If you remix, transform, or build upon the material, you must distribute your contributions under the same license as the original.
+- 📝 **Attribution** — You must give appropriate credit to d57udy, provide a link to the license, and indicate if changes were made.
+- 🚫 **NonCommercial** — You may not use the material for commercial purposes.
+- 🔄 **ShareAlike** — If you remix, transform, or build upon the material, you must distribute your contributions under the same license.
 
 **Additional Requirements:**
 - 📧 **Notification Encouraged** — While not legally required, please let us know if you're using this code or creating derivatives by opening a GitHub issue or contacting d57udy
 - 🔗 **Link Back** — Include a prominent link back to the original project when using or adapting this code
 
-### Why CC BY-SA 4.0?
+### Why CC BY-NC-SA 4.0?
 
 This license ensures that:
 1. **Attribution** is always maintained for the original creator (d57udy)
 2. **Improvements flow back** to the community through ShareAlike requirements
-3. **Commercial use** is permitted with proper attribution
-4. **Innovation is encouraged** while protecting the open-source nature of derivatives
+3. **Commercial use** is restricted without explicit permission
+4. **Innovation is encouraged** while protecting noncommercial use of derivatives
 
 ## ⚠️ Disclaimer
 
