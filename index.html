@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
     <title>Swiss Rent vs Buy Calculator</title>
     <style>
         body {
@@ -750,7 +751,7 @@
                         Scenario
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">Choose how to compare rent vs buy: Equal consumption (standard baseline) or Equal savings (the renter also invests an amount equal to the buyer's amortization each year).</span>
+                            <span class="tooltiptext">Choose how to compare rent vs buy: Equal consumption (baseline), Cash-flow parity (renter invests the positive monthly difference), or Equal savings (renter invests the buyer's amortization-equivalent each year).</span>
                         </div>
                     </div>
                     <div class="input-container">
@@ -758,9 +759,13 @@
                             <input type="radio" name="scenarioMode" value="equalConsumption" checked>
                             <span>Equal consumption (baseline)</span>
                         </label>
+                        <label style="margin-right: 16px; display: inline-flex; align-items: center; gap: 6px;">
+                            <input type="radio" name="scenarioMode" value="cashflowParity">
+                            <span>Cash-flow parity (invest actual monthly difference)</span>
+                        </label>
                         <label style="display: inline-flex; align-items: center; gap: 6px;">
                             <input type="radio" name="scenarioMode" value="equalSavings">
-                            <span>Equal savings (invest the difference)</span>
+                            <span>Equal savings (amortization equivalent)</span>
                         </label>
                     </div>
                 </div>
@@ -779,7 +784,15 @@
                             </ul>
                         </div>
                         <div>
-                            <div style="font-weight: 600; color: #0b7dda; margin-bottom: 4px;">Equal savings (invest the difference)</div>
+                            <div style="font-weight: 600; color: #0b7dda; margin-bottom: 4px;">Cash-flow parity (invest actual monthly difference)</div>
+                            <ul style="margin: 0 0 0 16px; padding: 0;">
+                                <li>Renter invests the positive difference between the buyer's and renter's monthly cash outflow, year by year.</li>
+                                <li>Contributions vary over time; no withdrawals when the difference is negative.</li>
+                                <li>Contributions compound at the investment yield; investment income is taxed.</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #0b7dda; margin-bottom: 4px;">Equal savings (amortization equivalent)</div>
                             <ul style="margin: 0 0 0 16px; padding: 0;">
                                 <li>Assumes renter also saves and invests the amortization-equivalent each year (during amortization period).</li>
                                 <li>Those contributions compound at the investment yield; investment income is taxed.</li>
@@ -789,7 +802,7 @@
                         </div>
                     </div>
                     <div style="margin-top: 8px; color: #3c3c43;">
-                        <strong>Guidance:</strong> Use <em>Equal consumption</em> for baseline comparisons and affordability framing. Switch to <em>Equal savings</em> to answer “what if I invest with the same discipline as amortization?”
+                        <strong>Guidance:</strong> Use <em>Equal consumption</em> for baseline comparisons and affordability framing. Choose <em>Cash-flow parity</em> to model investing the actual monthly difference. Choose <em>Equal savings</em> to answer “what if I invest with the same discipline as amortization?”.
                     </div>
                 </div>
             </div>
@@ -940,14 +953,14 @@
                         </ul>
                     </div>
                     <div style="text-align: center;">
-                        <a href="https://github.com/yourusername/swiss-rent-buy-calculator" target="_blank" 
+                        <a href="https://github.com/yourusername/swiss-rent-buy-calculator" target="_blank" rel="noopener noreferrer"
                            style="display: inline-block; background: #007aff; color: white; padding: 10px 20px; 
-                                  border-radius: 6px; text-decoration: none; font-weight: 600; margin-right: 10px;">
+                                   border-radius: 6px; text-decoration: none; font-weight: 600; margin-right: 10px;">
                             📁 View Source Code
                         </a>
-                        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" 
+                        <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer"
                            style="display: inline-block; background: #ff9800; color: white; padding: 10px 20px; 
-                                  border-radius: 6px; text-decoration: none; font-weight: 600;">
+                                   border-radius: 6px; text-decoration: none; font-weight: 600;">
                             📜 View License
                         </a>
                     </div>
@@ -966,27 +979,27 @@
                         <h4 style="color: white; margin-bottom: 15px; font-size: 16px;">Share with others:</h4>
                         <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
                             <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20comprehensive%20Swiss%20Rent%20vs%20Buy%20Calculator!%20It%20helped%20me%20make%20an%20informed%20property%20decision.&url=https://yoursite.com" 
-                               target="_blank" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
+                               target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
                                 🐦 Twitter
                             </a>
                             <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://yoursite.com" 
-                               target="_blank" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
+                               target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
                                 💼 LinkedIn
                             </a>
                             <a href="https://www.facebook.com/sharer/sharer.php?u=https://yoursite.com" 
-                               target="_blank" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
+                               target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
                                 📘 Facebook
                             </a>
                             <a href="https://reddit.com/submit?url=https://yoursite.com&title=Swiss%20Rent%20vs%20Buy%20Calculator" 
-                               target="_blank" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
+                               target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
                                 🤖 Reddit
                             </a>
                         </div>
@@ -995,7 +1008,7 @@
                     <!-- Buy Me a Coffee -->
                     <div>
                         <h4 style="color: white; margin-bottom: 15px; font-size: 16px;">Support development:</h4>
-                        <a href="https://www.buymeacoffee.com/d57udy" target="_blank" 
+                        <a href="https://www.buymeacoffee.com/d57udy" target="_blank" rel="noopener noreferrer"
                            style="display: inline-block; background: #FFDD00; color: #000; 
                                   padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 600;
                                   border: none; transition: all 0.3s ease; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
@@ -1035,7 +1048,7 @@
                         Independent implementation • Not affiliated with any Swiss financial institution
                     </p>
                     <p style="margin: 0; font-size: 11px;">
-                        Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" 
+                        Licensed under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank" rel="noopener noreferrer"
                         style="color: #007aff; text-decoration: none;">CC BY-NC-SA 4.0</a> • 
                         Attribution required • ShareAlike derivatives
                     </p>
@@ -1213,10 +1226,14 @@
         function displaySingleResult(result) {
             const resultsDiv = document.getElementById('singleResults');
             const decisionClass = result.Decision.toLowerCase();
-            const modeText = result.ScenarioMode === 'equalSavings' ? 'Equal savings' : 'Equal consumption';
+            const modeText = result.ScenarioMode === 'equalSavings'
+                ? 'Equal savings (amortization equivalent)'
+                : (result.ScenarioMode === 'cashflowParity' ? 'Cash-flow parity' : 'Equal consumption');
             const modeInfo = result.ScenarioMode === 'equalSavings'
                 ? 'Renter invests amortization-equivalent each year; gains taxed.'
-                : 'Renter invests initial capital only (down payment + costs); gains taxed.';
+                : (result.ScenarioMode === 'cashflowParity'
+                    ? 'Renter invests the positive monthly difference and withdraws when negative; gains taxed.'
+                    : 'Renter invests initial capital only (down payment + costs); gains taxed.');
 
             // Compute monthly comparison deltas
             const buyMonthly = result.TotalMonthlyExpenses || 0;
@@ -1290,7 +1307,7 @@
                         <div style="font-weight: 600; color: #ff9500; margin-bottom: 8px;">Monthly (Renting)</div>
                         <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Rent</span><span>CHF ${result.MonthlyRentPayment.toLocaleString()}</span></div>
                         <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Supplemental costs</span><span>CHF ${result.MonthlyRentalCosts.toLocaleString()}</span></div>
-                        ${result.ScenarioMode === 'equalSavings' ? `<div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Investments (amortization equivalent)</span><span>CHF ${result.MonthlySavingsContribution.toLocaleString()}</span></div>` : ''}
+                        ${(result.ScenarioMode === 'equalSavings' || result.ScenarioMode === 'cashflowParity') ? `<div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>${result.ScenarioMode === 'cashflowParity' ? 'Investments / withdrawals (monthly difference)' : 'Investments (amortization equivalent)'}</span><span>${result.MonthlySavingsContribution >= 0 ? '' : '-'}CHF ${Math.abs(result.MonthlySavingsContribution).toLocaleString()}</span></div>` : ''}
                         <div class="result-item" style="font-weight: 600; color: #ff9500;"><span>Total</span><span>CHF ${result.TotalMonthlyRentingExpenses.toLocaleString()}</span></div>
                         <div class="result-item" style="margin-top: 6px; color: ${rentDeltaColor};"><span>vs Monthly Buying</span><span>${rentDeltaText}</span></div>
                     </div>
@@ -1313,7 +1330,7 @@
             const rentBreakdown = `
                 <div class="result-item"><span>General cost of rental</span><span>CHF ${Math.round(result.GeneralCostOfRental).toLocaleString()}.00</span></div>
                 <div class="result-item"><span>Excluding yields on assets</span><span>CHF ${Math.round(result.ExcludingYieldsOnAssets).toLocaleString()}.${Math.abs(Math.round((result.ExcludingYieldsOnAssets % 1) * 100)).toString().padStart(2, '0')}</span></div>
-                ${result.ScenarioMode === 'equalSavings' ? `<div class="result-item"><span>Excluding savings contributions</span><span>CHF ${Math.round(result.ExcludingSavingsContributions).toLocaleString()}.00</span></div>` : ''}
+                ${(result.ScenarioMode === 'equalSavings' || result.ScenarioMode === 'cashflowParity') ? `<div class="result-item"><span>Excluding savings contributions</span><span>CHF ${Math.round(result.ExcludingSavingsContributions).toLocaleString()}.00</span></div>` : ''}
                 <div class="result-item"><span>Excluding down-payment</span><span>CHF ${Math.round(result.ExcludingDownPayment).toLocaleString()}.00</span></div>
                 <div class="result-item" style="font-weight: 600; background-color: #f0f8ff;"><span>Total rental cost</span><span>CHF ${Math.round(result.TotalRentalCost).toLocaleString()}.${Math.abs(Math.round((result.TotalRentalCost % 1) * 100)).toString().padStart(2, '0')}</span></div>`;
 
@@ -1904,7 +1921,7 @@
                     // Set up CSV download buttons after results are displayed
                     setupCsvDownloadButtons();
                 } catch (error) {
-                    resultsDiv.innerHTML = `<div style="color: #ff3b30;">Error: ${error.message}</div>`;
+                    resultsDiv.textContent = `Error: ${error.message}`;
                 } finally {
                     sweepBtn.textContent = 'Run Parameter Sweep';
                     sweepBtn.disabled = false;

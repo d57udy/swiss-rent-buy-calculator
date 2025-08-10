@@ -89,6 +89,40 @@ cd swiss-rent-buy-calculator
 open index.html
 ```
 
+## 🧭 How to Use This Calculator
+
+Follow these steps for a clear workflow from “first run” to “deep analysis”.
+
+### 1) Start on the Single Calculation tab
+- **Enter property basics**: `Purchase price`, `Down payment`/`Mortgage amount` and any `Additional purchase costs` or `Renovations`.
+- **Mortgage & amortization**: Choose an amortization mode and check the `Annual amortization` that results (or enter manually).
+- **Rent & investment assumptions**: Set `Monthly rent`, `Supplemental costs`, and `Investment yield` (for renter savings).
+- **Taxes**: Either accept the defaults or use your canton’s `Imputed rental value`, `Deductions`, and `Marginal tax rate`.
+- **Comparison Mode**:
+  - `Equal consumption (baseline)` — Renter invests only initial capital.
+  - `Cash-flow parity (invest actual monthly difference)` — Renter invests the positive monthly difference and withdraws when negative.
+  - `Equal savings (amortization equivalent)` — Renter contributes the buyer’s amortization each year.
+- Click `Calculate` to see the decision, monthly snapshot, and detailed breakdowns.
+
+Tips:
+- The monthly boxes show budget cash flow; the decision banner reflects long‑horizon economics including asset value and investments.
+- Hover the mode badge for a tooltip describing the selected comparison behavior.
+
+### 2) Explore the Max Bid Finder
+- Open the `Maximum Bid Finder` tab. It inherits all inputs (including the selected comparison mode).
+- Set the search range and tolerance; run the search to find the highest price you can pay while breaking even with renting.
+- Use the pivot-style results and CSV export for negotiation planning.
+
+### 3) Run a Parameter Sweep
+- Open the `Parameter Sweep` tab. It also inherits the current comparison mode and inputs.
+- Configure ranges for property appreciation, investment yield, and mortgage rate.
+- Run the sweep to visualize `BUY` vs `RENT` across conditions and export results as CSV.
+
+### 4) Save / Load Scenarios
+- Use the `💾 Save Parameters` button to download a JSON file containing all inputs, including `scenarioMode`.
+- Use `📁 Load Parameters` to restore a saved session; all fields and the selected mode will be reapplied.
+
+
 ### System Requirements
 - **Browser**: Modern browser with ES6+ support (Chrome 60+, Firefox 55+, Safari 12+)
 - **Internet**: Not required (fully offline capable)
@@ -145,7 +179,8 @@ When the user clicks the **"Calculate"** button, the following steps occur:
 
 ##### Comparison Modes
 - **Equal Consumption (default, baseline)**: Renter invests only the initial capital not tied up in the property (down payment + purchase costs). Amortization is treated as equity building on the buy side and not mirrored as renter savings.
-- **Equal Savings (invest the difference)**: Renter also contributes an amount each year equal to the buyer's amortization during the amortization period, with investment growth and investment-income tax applied. Toggle this in the Single Calculation tab under "Comparison Mode".
+- **Cash-flow parity (invest actual monthly difference)**: Renter invests, each year, the positive difference between the buyer’s monthly cash outflow (interest + amortization during the amortization period + maintenance) and the renter’s monthly outflow (rent + supplemental costs). Contributions vary by year, compound at the investment yield, and investment income is taxed. No withdrawals are modeled when the difference is negative.
+- **Equal savings (amortization equivalent)**: Renter also contributes an amount each year equal to the buyer's amortization during the amortization period; those contributions compound at the investment yield and investment income is taxed.
 
 ###### Deeper logic and guidance
 The two modes answer different behavioral questions. Both are valid, but serve different purposes.
@@ -158,15 +193,22 @@ The two modes answer different behavioral questions. Both are valid, but serve d
     - Buyer amortization is not treated as a cost; it is equity building and is already captured via “− property value + remaining mortgage”.
   - When to use: Baseline comparisons; affordability framing; common in professional calculators.
 
-- **Equal Savings (invest-the-difference / savings-parity)**
-  - Purpose: Test disciplined saving behavior where the renter commits to invest the buyer’s amortization-equivalent each year.
+- **Cash-flow parity (invest the actual monthly difference)**
+  - Purpose: Model a renter who invests precisely the real monthly budget advantage relative to buying.
+  - Mechanics:
+    - Compute each year the cash-flow difference: (buyer monthly costs − renter monthly costs) × 12; when negative, it is modeled as a withdrawal. Contributions/withdrawals compound at the investment yield; investment gains are taxed.
+    - Rental total cost subtracts the algebraic sum of principal contributions (investments minus withdrawals) along with the original down payment.
+  - When to use: “What if I invest whatever I actually save in monthly cash flow?” scenarios; sensitivity to budget outcomes.
+
+- **Equal savings (amortization-equivalent)**
+  - Purpose: Test disciplined saving behavior where the renter commits to invest an amount equal to the buyer’s amortization each year.
   - Mechanics:
     - In addition to the initial invested capital, the renter contributes the annual amortization for each year of the amortization period; contributions compound at the investment yield; investment gains are taxed.
     - Rental total cost subtracts both the invested down payment and the amortization-equivalent contributions (principal), mirroring the buyer’s equity build.
-  - When to use: Sensitivity when market returns are expected to exceed property appreciation; “what if I invest like a machine?” scenarios; financial planning discussions about savings discipline.
+  - When to use: Sensitivity when market returns are expected to exceed property appreciation; “what if I invest with the same discipline as amortization?”
 
 Notes:
-- Monthly expenses (interest + amortization + maintenance) are informational and identical across modes; the mode affects the long-horizon net-cost comparison.
+- Monthly expenses boxes are informational; the modes primarily change the long-horizon net-cost comparison by altering renter savings behavior.
 - Max-bid and parameter sweep inherit the selected mode from the Single Calculation tab.
 
 ---

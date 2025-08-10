@@ -83,7 +83,8 @@ class SwissRentBuyCalculator {
             investmentYieldRate = 0.00,        // 0% - conservative investment return
             termYears = 10,                    // 10 years - standard analysis period
             // Comparison scenario mode:
-            // 'equalConsumption' (baseline) or 'equalSavings' (invest the difference: amortization-equivalent contributions)
+            // 'equalConsumption' (baseline), 'cashflowParity' (invest actual monthly difference),
+            // or 'equalSavings' (amortization-equivalent contributions)
             scenarioMode = 'equalConsumption'
         } = params;
 
@@ -179,14 +180,37 @@ class SwissRentBuyCalculator {
         // Calculate renter investment base and contributions depending on scenario
         const investableAmount = downPayment + additionalPurchaseCosts; // upfront capital not tied in house
         const contributionYears = Math.min(amortizationYears, termYears);
-        const totalSavingsContributions = scenarioMode === 'equalSavings' ? (annualAmortization * contributionYears) : 0;
+        let totalSavingsContributions = 0;        // Principal contributed by renter (scenario dependent)
+        let contributionsPerYear = new Array(termYears).fill(0);
+
+        if (scenarioMode === 'equalSavings') {
+            // Amortization-equivalent savings for the amortization period
+            totalSavingsContributions = annualAmortization * contributionYears;
+            for (let year = 0; year < contributionYears; year++) {
+                contributionsPerYear[year] = annualAmortization;
+            }
+        } else if (scenarioMode === 'cashflowParity') {
+            // Cash-flow parity: invest the ACTUAL difference in annual cash outflows.
+            // Contribution can be positive (investment) or negative (withdrawal) when renter's
+            // cash outflow exceeds the buyer's. This models drawing down the savings pot.
+            for (let year = 0; year < termYears; year++) {
+                const buyerAnnualCashCosts = (yearlyBreakdown[year].annualInterest) +
+                    (year < amortizationYears ? annualAmortization : 0) +
+                    annualMaintenanceCosts;
+                const renterAnnualCashCosts = (monthlyRent * 12) + annualRentalCosts;
+                const contribution = (buyerAnnualCashCosts - renterAnnualCashCosts);
+                contributionsPerYear[year] = contribution;
+                totalSavingsContributions += contribution;
+            }
+        }
 
         // Future value of initial investable amount at end of term
         const fvInitial = investableAmount * Math.pow(1 + investmentYieldRate, termYears);
         const gainsInitial = fvInitial - investableAmount;
 
-        // Future value of annual contributions (ordinary annuity) if equalSavings
-        // FV at termYears = A * [((1+r)^n - 1)/r] * (1+r)^(T - n)
+        // Future value of annual contributions
+        // - Equal-savings (amortization-equivalent): ordinary annuity closed form
+        // - Cash-flow parity: variable contributions → sum of each year's FV
         let fvContribs = 0;
         let gainsContribs = 0;
         if (scenarioMode === 'equalSavings' && annualAmortization > 0 && contributionYears > 0) {
@@ -197,6 +221,22 @@ class SwissRentBuyCalculator {
                 fvContribs = annualAmortization * ((Math.pow(1 + investmentYieldRate, contributionYears) - 1) / investmentYieldRate) * Math.pow(1 + investmentYieldRate, termYears - contributionYears);
             }
             gainsContribs = fvContribs - (annualAmortization * contributionYears);
+        } else if (scenarioMode === 'cashflowParity' && totalSavingsContributions !== 0) {
+            if (investmentYieldRate === 0) {
+                // With zero growth, the future value equals the algebraic sum of contributions
+                fvContribs = totalSavingsContributions;
+            } else {
+                // Variable contributions: accumulate each year's contribution with appropriate growth.
+                for (let year = 0; year < termYears; year++) {
+                    const contrib = contributionsPerYear[year];
+                    if (contrib !== 0) {
+                        const growthYears = termYears - (year + 1);
+                        fvContribs += contrib * Math.pow(1 + investmentYieldRate, growthYears);
+                    }
+                }
+            }
+            // Gains are FV minus algebraic principal (positive investments minus withdrawals)
+            gainsContribs = fvContribs - totalSavingsContributions;
         }
 
         // Total investment gains for renter
@@ -265,8 +305,8 @@ class SwissRentBuyCalculator {
         const generalCostOfRental = (monthlyRent * 12 * termYears) + (annualRentalCosts * termYears);
         const yieldsOnAssets = totalInvestmentGains; // gains only (not principal)
         const downPaymentOutput = downPayment;
-        const savingsContributionsOutput = totalSavingsContributions; // principal contributed by renter in equal-savings
-        const totalRentalCost = scenarioMode === 'equalSavings'
+        const savingsContributionsOutput = totalSavingsContributions; // principal contributed by renter in equal-savings/cashflow-parity
+        const totalRentalCost = (scenarioMode === 'equalSavings' || scenarioMode === 'cashflowParity')
             ? (generalCostOfRental - yieldsOnAssets - downPaymentOutput - savingsContributionsOutput)
             : (generalCostOfRental - yieldsOnAssets - downPaymentOutput);
         
@@ -296,7 +336,9 @@ class SwissRentBuyCalculator {
         const monthlyRentalCosts = Math.round(annualRentalCosts / 12);
         const monthlySavingsContribution = (scenarioMode === 'equalSavings' && amortizationYears > 0)
             ? Math.round(annualAmortization / 12)
-            : 0;
+            : (scenarioMode === 'cashflowParity' 
+                ? Math.round(((monthlyInterestPayment + monthlyAmortizationPayment + monthlyMaintenanceCosts) - (monthlyRentPayment + monthlyRentalCosts)))
+                : 0);
         const totalMonthlyRentingExpenses = monthlyRentPayment + monthlyRentalCosts + monthlySavingsContribution;
         
         // Calculate cumulative costs for yearly breakdown - ensure final year matches main calculation exactly
@@ -337,14 +379,30 @@ class SwissRentBuyCalculator {
 
                 const contribYearsToDate = scenarioMode === 'equalSavings' ? Math.min(contributionYears, yearsToDate) : 0;
                 let fvContribsToDate = 0;
+                let principalContribsToDate = 0;
                 if (scenarioMode === 'equalSavings' && annualAmortization > 0 && contribYearsToDate > 0) {
                     if (investmentYieldRate === 0) {
                         fvContribsToDate = annualAmortization * contribYearsToDate;
                     } else {
                         fvContribsToDate = annualAmortization * ((Math.pow(1 + investmentYieldRate, contribYearsToDate) - 1) / investmentYieldRate);
                     }
+                    principalContribsToDate = annualAmortization * contribYearsToDate;
+                } else if (scenarioMode === 'cashflowParity') {
+                    // Sum variable contributions and their growth up to this year
+                    for (let i = 0; i < yearsToDate; i++) {
+                        const c = contributionsPerYear[i];
+                        if (c > 0) {
+                            principalContribsToDate += c;
+                            if (investmentYieldRate === 0) {
+                                fvContribsToDate += c;
+                            } else {
+                                const growthYears = yearsToDate - (i + 1);
+                                fvContribsToDate += c * Math.pow(1 + investmentYieldRate, growthYears);
+                            }
+                        }
+                    }
                 }
-                const gainsContribsToDate = fvContribsToDate - (annualAmortization * contribYearsToDate);
+                const gainsContribsToDate = fvContribsToDate - principalContribsToDate;
                 const investmentGains = gainsInitialToDate + gainsContribsToDate;
                 
                 // Apply tax on realized gains up to this year using same rate
@@ -354,7 +412,9 @@ class SwissRentBuyCalculator {
                 yearData.totalPurchaseCostToDate = cumulativePurchaseCosts - propertyValueCurrentYear + yearData.endingBalance;
                 
                 // Net rental cost at end of this year (using same formula as main calculation)  
-                const contributionsToDate = scenarioMode === 'equalSavings' ? (annualAmortization * contribYearsToDate) : 0;
+                const contributionsToDate = scenarioMode === 'equalSavings'
+                    ? (annualAmortization * contribYearsToDate)
+                    : (scenarioMode === 'cashflowParity' ? principalContribsToDate : 0);
                 yearData.totalRentalCostToDate = (cumulativeRentalCosts - investmentGains + totalInvestmentTax - downPayment - contributionsToDate);
                 
                 // Cumulative advantage (positive means buying is better)
@@ -415,7 +475,7 @@ class SwissRentBuyCalculator {
             GeneralCostOfRental: generalCostOfRental,
             ExcludingYieldsOnAssets: -yieldsOnAssets,
             ExcludingDownPayment: -downPaymentOutput,
-            ExcludingSavingsContributions: scenarioMode === 'equalSavings' ? -savingsContributionsOutput : 0,
+            ExcludingSavingsContributions: (scenarioMode === 'equalSavings' || scenarioMode === 'cashflowParity') ? -savingsContributionsOutput : 0,
             TotalRentalCost: totalRentalCost,
             
             // Metadata

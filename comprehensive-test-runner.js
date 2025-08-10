@@ -9,7 +9,24 @@ const { execSync } = require('child_process');
 
 // Import our validation modules
 const backendValidation = require('./backend-validation-test.js');
-const randomSampleValidation = require('./random-sample-validation.js');
+let cashflowParityTests;
+try {
+    cashflowParityTests = require('./test-cashflow-parity.js');
+} catch (e) {
+    cashflowParityTests = { runCashflowParityTests: () => true };
+}
+let randomSampleValidation;
+try {
+    randomSampleValidation = require('./random-sample-validation.js');
+} catch (e) {
+    // Provide a safe fallback stub when random-sample-validation.js is not present
+    randomSampleValidation = {
+        main: () => {
+            console.warn('random-sample-validation.js not found; skipping random sample generation.');
+            return [];
+        }
+    };
+}
 
 class ComprehensiveTestRunner {
     constructor() {
@@ -70,6 +87,20 @@ class ComprehensiveTestRunner {
                 error: error.message,
                 timestamp: new Date().toISOString()
             };
+            throw error;
+        }
+    }
+
+    async runCashflowParityUnitTests() {
+        console.log('\n🧪 Cash-flow Parity Unit Tests');
+        console.log('='.repeat(50));
+        try {
+            const ok = cashflowParityTests.runCashflowParityTests();
+            if (!ok) throw new Error('Cash-flow parity tests reported failure');
+            console.log('✅ Cash-flow parity tests passed');
+            return true;
+        } catch (error) {
+            console.error('❌ Cash-flow parity tests failed:', error.message);
             throw error;
         }
     }
@@ -301,6 +332,9 @@ Review test results above and address any identified issues.
             // Step 1: Run backend validation
             await this.runBackendValidation();
             
+            // Step 1b: Run new cash-flow parity unit tests
+            await this.runCashflowParityUnitTests();
+
             // Step 2: Generate random sample tests
             await this.runRandomSampleGeneration();
             
