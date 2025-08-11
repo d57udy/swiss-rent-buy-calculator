@@ -3,7 +3,7 @@ const { defineConfig, devices } = require('@playwright/test');
 
 module.exports = defineConfig({
   testDir: '.',
-  testMatch: 'test-parameter-sweep.js',
+  testMatch: ['test-parameter-sweep.js', 'test-frontend-yearbyyear.spec.js'],
   timeout: 60000,
   fullyParallel: true,
   forbidOnly: !!process.env.CI,

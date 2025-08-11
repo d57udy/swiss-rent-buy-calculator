@@ -278,6 +278,10 @@ class SwissRentBuyCalculator {
             yearlyBreakdown[year].annualRent = monthlyRent * 12;
             yearlyBreakdown[year].annualRentalCosts = annualRentalCosts;
             yearlyBreakdown[year].annualTaxDifference = annualNetTaxDifference;
+            // Expose tax components for auditing (owner side)
+            yearlyBreakdown[year].taxImputedRent = annualTaxCostImputedRental; // +
+            yearlyBreakdown[year].taxSavingsInterest = annualTaxSavingsInterest; // -
+            yearlyBreakdown[year].taxSavingsPropertyExpenses = annualTaxSavingsPropertyExpenses; // -
             yearlyBreakdown[year].totalPurchaseCostToDate = 0; // Will calculate below
             yearlyBreakdown[year].totalRentalCostToDate = 0; // Will calculate below
             yearlyBreakdown[year].cumulativeAdvantage = 0; // Will calculate below
@@ -342,22 +346,56 @@ class SwissRentBuyCalculator {
         const totalMonthlyRentingExpenses = monthlyRentPayment + monthlyRentalCosts + monthlySavingsContribution;
         
         // Calculate cumulative costs for yearly breakdown - ensure final year matches main calculation exactly
+        // Also enrich with detailed analytics for transparency (portfolio, equity, taxes, cash-flow)
+        let portfolioValueSoFar = investableAmount; // renter portfolio starts with initial capital
+        let cumulativePrincipalFromContribs = 0;    // algebraic sum of renter contributions (excl. initial)
+        let cumulativeInvestmentGainsSoFar = 0;
+        let cumulativeAmortizationSoFar = 0;
+        let priorCumulativeAdvantage = 0;
         for (let year = 0; year < termYears; year++) {
             const yearData = yearlyBreakdown[year];
             const yearsToDate = year + 1;
+            // Mode-aware renter contribution for this year
+            let renterContributionThisYear = 0;
+            if (scenarioMode === 'equalSavings' && year < contributionYears) {
+                renterContributionThisYear = annualAmortization;
+            } else if (scenarioMode === 'cashflowParity') {
+                renterContributionThisYear = contributionsPerYear[year] || 0;
+            }
+
+            // Investment portfolio tracking (simple model: gains on start-of-year balance; contribution at end of year)
+            const gainsThisYear = portfolioValueSoFar * investmentYieldRate;
+            cumulativeInvestmentGainsSoFar += gainsThisYear;
+            cumulativePrincipalFromContribs += renterContributionThisYear;
+            const investmentIncomeTaxThisYear = gainsThisYear * marginalTaxRate;
+            portfolioValueSoFar = portfolioValueSoFar + gainsThisYear + renterContributionThisYear;
+
+            // Buyer amortization accumulation
+            cumulativeAmortizationSoFar += yearData.annualAmortization;
+            
+            // Property value & equity at end of this year
+            const propertyValueCurrentYear = purchasePrice * Math.pow(1 + propertyAppreciationRate, yearsToDate);
+            const homeownerTaxThisYear = (imputedRentalValue * marginalTaxRate) - (yearData.annualInterest * marginalTaxRate) - (propertyTaxDeductions * marginalTaxRate);
+            const buyAnnualCashOutlay = yearData.annualInterest + yearData.annualMaintenance + homeownerTaxThisYear;
+            const rentAnnualCashOutlay = yearData.annualRent + yearData.annualRentalCosts + investmentIncomeTaxThisYear;
+            const netMonthlyDiffThisYear = (buyAnnualCashOutlay - rentAnnualCashOutlay) / 12;
             
             if (yearsToDate === termYears) {
                 // For the final year, use the exact same values as main calculation to ensure consistency
                 yearData.totalPurchaseCostToDate = totalPurchaseCost;
                 yearData.totalRentalCostToDate = totalRentalCost;
                 yearData.cumulativeAdvantage = resultValue;
+                yearData.advantageDeltaFromPriorYear = yearsToDate > 1 ? (yearData.cumulativeAdvantage - priorCumulativeAdvantage) : yearData.cumulativeAdvantage;
             } else {
                 // For intermediate years, calculate proportionally
                 // Calculate what fraction of the total term this represents
                 const termFraction = yearsToDate / termYears;
                 
                 // Calculate cumulative purchase costs up to this year
-                let cumulativePurchaseCosts = downPayment + additionalPurchaseCosts + totalRenovations;
+                // IMPORTANT: Down payment is NOT an unrecoverable cost in the main formula
+                // (it is captured via -propertyValue + remaining mortgage), so we do not
+                // add downPayment here to avoid a discontinuity in the final year.
+                let cumulativePurchaseCosts = additionalPurchaseCosts + totalRenovations;
                 
                 // Add up all costs from year 1 to current year
                 for (let y = 0; y <= year; y++) {
@@ -399,6 +437,8 @@ class SwissRentBuyCalculator {
                                 const growthYears = yearsToDate - (i + 1);
                                 fvContribsToDate += c * Math.pow(1 + investmentYieldRate, growthYears);
                             }
+                        } else if (c < 0) {
+                            principalContribsToDate += c; // withdrawals reduce principal
                         }
                     }
                 }
@@ -419,7 +459,25 @@ class SwissRentBuyCalculator {
                 
                 // Cumulative advantage (positive means buying is better)
                 yearData.cumulativeAdvantage = yearData.totalRentalCostToDate - yearData.totalPurchaseCostToDate;
+                yearData.advantageDeltaFromPriorYear = yearsToDate > 1 ? (yearData.cumulativeAdvantage - priorCumulativeAdvantage) : yearData.cumulativeAdvantage;
             }
+
+            // Enrich row with analytics common to both branches
+            yearData.renterContribution = renterContributionThisYear;
+            yearData.cumulativeRenterPrincipal = cumulativePrincipalFromContribs;
+            yearData.investmentGainsThisYear = gainsThisYear;
+            yearData.cumulativeInvestmentGains = cumulativeInvestmentGainsSoFar;
+            yearData.investmentIncomeTaxThisYear = investmentIncomeTaxThisYear;
+            yearData.portfolioValueEndOfYear = portfolioValueSoFar;
+            yearData.cumulativeAmortizationToDate = cumulativeAmortizationSoFar;
+            yearData.propertyValueEndOfYear = propertyValueCurrentYear;
+            yearData.homeownerEquityEndOfYear = propertyValueCurrentYear - yearData.endingBalance;
+            yearData.ltvPercentEndOfYear = propertyValueCurrentYear > 0 ? (yearData.endingBalance / propertyValueCurrentYear) * 100 : 0;
+            yearData.buyAnnualCashOutlay = buyAnnualCashOutlay;
+            yearData.rentAnnualCashOutlay = rentAnnualCashOutlay;
+            yearData.netMonthlyDiffThisYear = netMonthlyDiffThisYear;
+
+            priorCumulativeAdvantage = yearData.cumulativeAdvantage;
         }
 
         return {

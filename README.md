@@ -179,7 +179,7 @@ When the user clicks the **"Calculate"** button, the following steps occur:
 
 ##### Comparison Modes
 - **Equal Consumption (default, baseline)**: Renter invests only the initial capital not tied up in the property (down payment + purchase costs). Amortization is treated as equity building on the buy side and not mirrored as renter savings.
-- **Cash-flow parity (invest actual monthly difference)**: Renter invests, each year, the positive difference between the buyer’s monthly cash outflow (interest + amortization during the amortization period + maintenance) and the renter’s monthly outflow (rent + supplemental costs). Contributions vary by year, compound at the investment yield, and investment income is taxed. No withdrawals are modeled when the difference is negative.
+- **Cash-flow parity (invest actual monthly difference)**: Renter invests, each year, the difference between the buyer’s monthly cash outflow (interest + amortization during the amortization period + maintenance) and the renter’s monthly outflow (rent + supplemental costs). When the difference is negative, it is modeled as a withdrawal. Contributions/withdrawals compound at the investment yield; investment income is taxed.
 - **Equal savings (amortization equivalent)**: Renter also contributes an amount each year equal to the buyer's amortization during the amortization period; those contributions compound at the investment yield and investment income is taxed.
 
 ###### Deeper logic and guidance
@@ -210,6 +210,33 @@ The two modes answer different behavioral questions. Both are valid, but serve d
 Notes:
 - Monthly expenses boxes are informational; the modes primarily change the long-horizon net-cost comparison by altering renter savings behavior.
 - Max-bid and parameter sweep inherit the selected mode from the Single Calculation tab.
+
+### Year-by-Year Analysis Columns (Detailed)
+
+These columns mirror the UI and allow you to audit the full calculation path.
+
+- **Year**: 1..T.
+- **Mortgage Balance (CHF)**: Remaining mortgage debt at the end of the year after interest and (if applicable) amortization are applied (declining‑balance method).
+- **Interest (CHF)**: Annual interest on the starting balance for the year.
+- **Amortization (CHF)**: Principal repaid this year; zero after the amortization period.
+- **Maintenance (CHF)**: Annual maintenance cost.
+- **Annual Rent (CHF)**: 12 × monthly rent.
+- **Renter Contrib. (CHF)**: Mode‑dependent savings/withdrawals:
+  - Equal consumption: 0.
+  - Cash‑flow parity: (buyer annual cash outlay − renter annual cash outlay); negative values mean withdrawals.
+  - Equal savings: annual amortization (during amortization years).
+- **Cum. Renter Principal (CHF)**: Algebraic sum of renter contributions across years (savings − withdrawals). Excludes initial investable capital (down payment + purchase costs).
+- **Gains (Year) (CHF)**: Portfolio at start of year × investment yield.
+- **Gains (Cum.) (CHF)**: Sum of gains up to this year.
+- **Tax on Gains (Year) (CHF)**: Gains (Year) × marginal tax rate.
+- **Portfolio (End) (CHF)**: Prior portfolio + Gains (Year) + Renter Contrib.
+- **Property Value (End) (CHF)**: Purchase price × (1 + appreciation)^Year.
+- **Equity (End) (CHF)**: Property Value (End) − Mortgage Balance.
+- **LTV (End) (%)**: Mortgage Balance ÷ Property Value (End) × 100.
+- **Cumulative Buy Cost (CHF)**: Down payment + purchase costs + Σ(interest + amortization + maintenance + net tax difference) − Property Value (to date) + Mortgage Balance (to date).
+- **Cumulative Rent Cost (CHF)**: Σ(rent + rental costs) − Investment gains (to date) + Tax on gains (to date) − Down payment − Cum. Renter Principal.
+- **Advantage (CHF)**: Cumulative Rent Cost − Cumulative Buy Cost. Positive favors buying; negative favors renting.
+- **Advantage Δ (CHF)**: Year‑over‑year change in Advantage.
 
 ---
 
