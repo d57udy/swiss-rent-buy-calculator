@@ -96,6 +96,11 @@ Follow these steps for a clear workflow from “first run” to “deep analysis
 ### 1) Start on the Single Calculation tab
 - **Enter property basics**: `Purchase price`, `Down payment`/`Mortgage amount` and any `Additional purchase costs` or `Renovations`.
 - **Mortgage & amortization**: Choose an amortization mode and check the `Annual amortization` that results (or enter manually).
+- **Down Payment / Mortgage Configuration**:
+  - `Set mortgage to 80% / down payment to 20%` — Sets LTV to 80% (first‑rank mortgage). Standard Swiss minimum equity.
+  - `Specify down payment manually` — Enter any equity. The UI warns if equity < 20% of price.
+  - `Maximize mortgage up to 80% of purchase price, but below specified limit` — Mortgage = min(limit, 80% × price); equity is the remainder.
+  - `Maximize mortgage up to 66.6% of purchase price, but below specified limit (no 2nd rank)` — Mortgage = min(limit, 66.6% × price); equity ≥ 33.4% to avoid a second‑rank mortgage.
 - **Rent & investment assumptions**: Set `Monthly rent`, `Supplemental costs`, and `Investment yield` (for renter savings).
 - **Taxes**: Either accept the defaults or use your canton’s `Imputed rental value`, `Deductions`, and `Marginal tax rate`.
 - **Comparison Mode**:

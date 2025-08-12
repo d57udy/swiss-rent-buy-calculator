@@ -458,18 +458,37 @@
                     <div style="margin-bottom: 15px;">
                         <div class="checkbox-container">
                             <input type="radio" id="autoDownPayment" name="downPaymentMode" value="auto" checked>
-                            <label for="autoDownPayment">Calculate down payment automatically (20% of purchase price)</label>
+                            <label for="autoDownPayment">Set mortgage to 80% of purchase price, down-payment to 20%
+                                <div class="tooltip" style="margin-left: 5px;">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltiptext">Automatically sets total LTV to 80% (typically ~66.6% first‑rank + up to ~13.4% second‑rank). Down payment is 20% of the purchase price. Under Swiss rules the second‑rank portion must be amortized down to 66.6% LTV within 15 years.</span>
+                                </div>
+                            </label>
                         </div>
                         <div class="checkbox-container">
                             <input type="radio" id="manualDownPayment" name="downPaymentMode" value="manual">
-                            <label for="manualDownPayment">Specify down payment manually</label>
+                            <label for="manualDownPayment">Specify down payment manually
+                                <div class="tooltip" style="margin-left: 5px;">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltiptext">Enter any down payment you plan to use. For regulatory realism, a warning appears if equity falls below 20% of the purchase price.</span>
+                                </div>
+                            </label>
                         </div>
                         <div class="checkbox-container">
                             <input type="radio" id="mortgageAmountMode" name="downPaymentMode" value="mortgage">
-                            <label for="mortgageAmountMode">Maximize mortgage up to specified limit
+                            <label for="mortgageAmountMode">Maximize mortgage up to 80% of purchase price, but below specified limit
                                 <div class="tooltip" style="margin-left: 5px;">
                                     <span class="info-icon">i</span>
-                                    <span class="tooltiptext">Sets the mortgage amount to your specified maximum, unless doing so would result in a down payment below 20% of the purchase price. In that case, the down payment is set to exactly 20% and the mortgage is reduced accordingly. Formula: Down Payment = max(20% × Purchase Price, Purchase Price - Max Mortgage)</span>
+                                    <span class="tooltiptext">Sets the mortgage to min(specified limit, 80% × purchase price). Down payment = purchase price − mortgage. Guarantees at least 20% down payment.</span>
+                                </div>
+                            </label>
+                        </div>
+                        <div class="checkbox-container">
+                            <input type="radio" id="mortgageLtv66Mode" name="downPaymentMode" value="mortgage66">
+                            <label for="mortgageLtv66Mode">Maximize mortgage up to 66.6% of purchase price, but below specified limit (no 2nd rank mortgage)
+                                <div class="tooltip" style="margin-left: 5px;">
+                                    <span class="info-icon">i</span>
+                                    <span class="tooltiptext">Sets the mortgage to min(specified limit, 66.6% × purchase price). Down payment = purchase price − mortgage (≥ 33.4%). This avoids a second‑rank mortgage by keeping LTV at or below 66.6%.</span>
                                 </div>
                             </label>
                         </div>
@@ -482,7 +501,12 @@
                     </div>
                     
                     <div class="input-container" id="mortgageAmountInput" style="display: none;">
-                        <label>Maximum Mortgage Amount:</label>
+                        <label>Maximum Mortgage Amount:
+                            <div class="tooltip" style="margin-left: 5px; display:inline-flex;">
+                                <span class="info-icon">i</span>
+                                <span class="tooltiptext">Used by the “maximize mortgage” modes. The mortgage will be the smaller of this limit and the LTV cap (80% or 66.6% of purchase price). Down payment is the remainder.</span>
+                            </div>
+                        </label>
                         <input type="number" id="mortgageAmount" value="1600000" step="1000" min="0">
                         <span class="unit">CHF</span>
                     </div>
@@ -1091,21 +1115,30 @@
                 document.getElementById('downPaymentInput').style.display = 'block';
                 document.getElementById('mortgageAmountInput').style.display = 'none';
             } else if (downPaymentMode === 'mortgage') {
-                // Maximize mortgage up to specified limit, respecting 20% minimum down payment
+                // Maximize mortgage up to 80% of purchase price, but below specified limit
                 const maxMortgageLimit = parseFloat(document.getElementById('mortgageAmount').value) || 0;
-                const minDownPayment = Math.round(purchasePrice * 0.2);
-                const maxPossibleMortgage = purchasePrice - minDownPayment;
-                
-                // Use the smaller of: user's limit or what's possible with 20% down payment
-                actualMortgageAmount = Math.min(maxMortgageLimit, maxPossibleMortgage);
+                const ltvCap = 0.8;
+                const ltvCapAmount = Math.round(purchasePrice * ltvCap);
+                actualMortgageAmount = Math.min(maxMortgageLimit, ltvCapAmount);
                 downPayment = purchasePrice - actualMortgageAmount;
-                
-                // Ensure we never go below 20% down payment
+                const minDownPayment = Math.round(purchasePrice * (1 - ltvCap));
                 if (downPayment < minDownPayment && purchasePrice > 0) {
                     downPayment = minDownPayment;
                     actualMortgageAmount = purchasePrice - downPayment;
                     showWarning = true;
                 }
+                
+                document.getElementById('downPayment').value = downPayment;
+                document.getElementById('downPayment').disabled = true;
+                document.getElementById('downPaymentInput').style.display = 'block';
+                document.getElementById('mortgageAmountInput').style.display = 'block';
+            } else if (downPaymentMode === 'mortgage66') {
+                // Maximize mortgage up to 66.6% of purchase price, but below specified limit (no 2nd rank)
+                const maxMortgageLimit = parseFloat(document.getElementById('mortgageAmount').value) || 0;
+                const ltvCap = 2/3; // 66.6%
+                const ltvCapAmount = Math.round(purchasePrice * ltvCap);
+                actualMortgageAmount = Math.min(maxMortgageLimit, ltvCapAmount);
+                downPayment = purchasePrice - actualMortgageAmount; // ≥ 33.4%
                 
                 document.getElementById('downPayment').value = downPayment;
                 document.getElementById('downPayment').disabled = true;
@@ -1559,7 +1592,7 @@
             let downPayment = 0;
             
             if (downPaymentMode === 'auto') {
-                // Auto down payment (20%)
+                // Auto: mortgage 80%, down payment 20%
                 downPayment = Math.round(testPurchasePrice * 0.2);
             } else if (downPaymentMode === 'manual') {
                 // Manual down payment with 20% minimum validation
@@ -1569,19 +1602,17 @@
                     downPayment = minDownPayment;
                 }
             } else if (downPaymentMode === 'mortgage') {
-                // Maximize mortgage up to specified limit, respecting 20% minimum down payment
+                // Maximize mortgage up to 80% LTV, but below specified limit
                 const maxMortgageLimit = parseFloat(document.getElementById('mortgageAmount').value) || 0;
-                const minDownPayment = Math.round(testPurchasePrice * 0.2);
-                const maxPossibleMortgage = testPurchasePrice - minDownPayment;
-                
-                // Use the smaller of: user's limit or what's possible with 20% down payment
-                const actualMortgageAmount = Math.min(maxMortgageLimit, maxPossibleMortgage);
+                const ltvCapAmount = Math.round(testPurchasePrice * 0.8);
+                const actualMortgageAmount = Math.min(maxMortgageLimit, ltvCapAmount);
                 downPayment = testPurchasePrice - actualMortgageAmount;
-                
-                // Ensure we never go below 20% down payment
-                if (downPayment < minDownPayment) {
-                    downPayment = minDownPayment;
-                }
+            } else if (downPaymentMode === 'mortgage66') {
+                // Maximize mortgage up to 66.6% LTV, but below specified limit
+                const maxMortgageLimit = parseFloat(document.getElementById('mortgageAmount').value) || 0;
+                const ltvCapAmount = Math.round(testPurchasePrice * (2/3));
+                const actualMortgageAmount = Math.min(maxMortgageLimit, ltvCapAmount);
+                downPayment = testPurchasePrice - actualMortgageAmount;
             }
             
             params.downPayment = downPayment;
