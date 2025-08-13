@@ -1668,9 +1668,9 @@
             if (amortizationMode === 'auto') {
                 params.annualAmortization = Math.round(mortgageAmount / amortizationYears);
             } else if (amortizationMode === 'swiss') {
-                // Swiss regulation: amortize to 65% LTV within 15 years
+                // Swiss regulation: amortize to 66.6% (2/3) LTV within 15 years
                 const currentLTV = mortgageAmount / testPurchasePrice;
-                const targetLTV = 0.65;
+                const targetLTV = (2/3);
                 
                 if (currentLTV > targetLTV) {
                     const targetMortgageAmount = testPurchasePrice * targetLTV;
@@ -1746,7 +1746,30 @@
                 
                 iterations++;
             }
-            
+            // Local refinement: scan a small window around best price to overcome rounding plateaus
+            if (bestResult && !bestResult.breakevenFound) {
+                const window = 5000; // CHF
+                let refinedBest = { ...bestResult };
+                for (let p = Math.max(options.minPrice, bestResult.breakevenPrice - window); p <= Math.min(options.maxPrice, bestResult.breakevenPrice + window); p += 1) {
+                    const params = getParametersWithAutoCalculations(p);
+                    const r = SwissRentBuyCalculator.calculate(params);
+                    const diff = Math.abs(r.ResultValue);
+                    if (diff < refinedBest.difference) {
+                        refinedBest = {
+                            breakevenFound: diff <= tolerance,
+                            breakevenPrice: p,
+                            resultValue: r.ResultValue,
+                            decision: r.Decision,
+                            difference: diff,
+                            originalPrice: bestResult.originalPrice,
+                            priceDifference: p - bestResult.originalPrice
+                        };
+                        if (refinedBest.breakevenFound) break;
+                    }
+                }
+                bestResult = refinedBest;
+            }
+
             if (bestResult) {
                 bestResult.iterations = iterations;
                 bestResult.message = bestResult.breakevenFound ? 
