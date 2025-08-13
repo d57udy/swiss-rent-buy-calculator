@@ -21,13 +21,13 @@ test.describe('Year-by-Year UI interactions', () => {
   test('Advanced toggle re-renders columns', async ({ page }) => {
     const toggle = page.locator('#toggle-advanced-cols');
     await expect(toggle).toBeChecked();
-    // Advanced header is present (in header and at least one row)
-    await expect(page.locator('thead >> text=Renter Contrib.')).toHaveCount(1);
+    // Advanced header is present
+    await expect(page.locator('thead >> text=Imputed Rent Tax (Owner)')).toHaveCount(1);
     await toggle.uncheck();
     // Re-render should hide advanced header
-    await expect(page.locator('thead >> text=Renter Contrib.')).toHaveCount(0);
+    await expect(page.locator('thead >> text=Imputed Rent Tax (Owner)')).toHaveCount(0);
     await toggle.check();
-    await expect(page.locator('thead >> text=Renter Contrib.')).toHaveCount(1);
+    await expect(page.locator('thead >> text=Imputed Rent Tax (Owner)')).toHaveCount(1);
   });
 });
 

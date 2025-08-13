@@ -489,15 +489,16 @@ class SwissRentBuyCalculator {
 
         // FINAL COMPARISON (after totals are ready)
         resultValue = totalRentalCost - totalPurchaseCost;
-        if (resultValue > 0) {
+        const evenTolerance = 5000; // CHF
+        if (Math.abs(resultValue) < evenTolerance) {
+            decision = "EVEN";
+            compareText = `Buying and renting are effectively even (within CHF ${evenTolerance.toLocaleString()}) over the relevant time frame.`;
+        } else if (resultValue > 0) {
             decision = "BUY";
             compareText = `Buying your home will work out CHF ${resultValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than renting over the relevant time frame.`;
         } else if (resultValue < 0) {
             decision = "RENT";
             compareText = `Renting is CHF ${Math.abs(resultValue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than buying over the relevant time frame.`;
-        } else {
-            decision = "EVEN";
-            compareText = "Buying and renting have the same cost over the relevant time frame.";
         }
 
         // Overwrite final year's cumulative fields to ensure consistency with final totals

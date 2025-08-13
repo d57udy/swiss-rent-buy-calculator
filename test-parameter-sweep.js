@@ -58,8 +58,8 @@ test.describe('Swiss Rent vs Buy Calculator - Parameter Sweep', () => {
     await expect(page.locator('#sweepResults')).toContainText('Lowest Max Bid');
     
     // Check that the pivot table is displayed
-    await expect(page.locator('.pivot-table')).toBeVisible();
-    await expect(page.locator('.pivot-table table')).toBeVisible();
+    await expect(page.locator('#maxBidPivot')).toBeVisible();
+    await expect(page.locator('#maxBidPivot table')).toBeVisible();
     
     // Check that the table has the correct structure
     await expect(page.locator('.pivot-table th').first()).toContainText('Mortgage');
@@ -69,7 +69,7 @@ test.describe('Swiss Rent vs Buy Calculator - Parameter Sweep', () => {
     await expect(page.locator('.pivot-table td.bid-price-cell').first()).toContainText(/[Mk]/);
     
     // Check that the download CSV button is visible
-    await expect(page.locator('#downloadCsvBtn')).toBeVisible();
+    await expect(page.locator('#downloadMaxBidCsvBtn')).toBeVisible();
   });
 
   test('should handle edge case parameter ranges', async ({ page }) => {
@@ -96,7 +96,7 @@ test.describe('Swiss Rent vs Buy Calculator - Parameter Sweep', () => {
     await expect(page.locator('#sweepResults')).toContainText('1 combination', { timeout: 10000 });
     
     // Should still show valid results
-    await expect(page.locator('.pivot-table')).toBeVisible();
+    await expect(page.locator('#maxBidPivot')).toBeVisible();
   });
 
   test('should show loading state and complete calculation', async ({ page }) => {
@@ -264,16 +264,16 @@ test.describe('Swiss Rent vs Buy Calculator - Parameter Sweep', () => {
     await expect(page.locator('#sweepResults')).toContainText('Maximum Bid Price Analysis', { timeout: 30000 });
     
     // CSV download button should be visible
-    await expect(page.locator('#downloadCsvBtn')).toBeVisible();
+    await expect(page.locator('#downloadMaxBidCsvBtn')).toBeVisible();
     
     // Setup download listener
     const [download] = await Promise.all([
       page.waitForEvent('download'),
-      page.click('#downloadCsvBtn')
+      page.click('#downloadMaxBidCsvBtn')
     ]);
     
     // Verify the download
-    expect(download.suggestedFilename()).toMatch(/rent_vs_buy_sweep_\d{4}-\d{2}-\d{2}\.csv/);
+    expect(download.suggestedFilename()).toMatch(/max_bid_price_sweep_\d{4}-\d{2}-\d{2}\.csv/);
   });
 
 });

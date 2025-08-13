@@ -284,7 +284,7 @@ Here is a detailed breakdown of how each output value in the results section is 
 
 -   **Decision (`Decision`)**:
     -   This is the final recommendation: **BUY**, **RENT**, or **EVEN**.
-    -   It is determined by the `ResultValue`. If `ResultValue` is positive, the decision is "BUY". If negative, it's "RENT". If zero, it's "EVEN".
+    -   It is determined by the `ResultValue` with a small neutrality band: if `|ResultValue| < CHF 5,000`, the decision is treated as **EVEN** (differences below this are economically negligible and often noise from rounding, taxation timing, or terminal value realization). Otherwise, positive → **BUY**, negative → **RENT**.
 -   **Financial Benefit (`ResultValue`)**:
     -   This is the ultimate output of the calculation, representing the net financial advantage of one option over the other over the entire analysis period.
     -   **Formula**: `ResultValue = TotalRentalCost - TotalPurchaseCost`

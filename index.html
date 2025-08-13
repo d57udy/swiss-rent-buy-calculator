@@ -834,7 +834,7 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:12px;">
-                <button class="button" id="calculateBtn">Calculate</button>
+            <button class="button" id="calculateBtn">Calculate</button>
                 <span id="staleNotice" style="display:none; color:#bf5b04; font-weight:600; align-self:center;">Results are outdated. Press Calculate to refresh.</span>
             </div>
             
@@ -1325,11 +1325,11 @@
                     }
                 }
                 // Fallback closest year for table navigation
-                let minAbs = Infinity;
-                result.YearlyBreakdown.forEach(y => {
-                    const a = Math.abs(y.cumulativeAdvantage);
-                    if (a < minAbs) { minAbs = a; breakEvenYear = y.year; }
-                });
+                    let minAbs = Infinity;
+                    result.YearlyBreakdown.forEach(y => {
+                        const a = Math.abs(y.cumulativeAdvantage);
+                        if (a < minAbs) { minAbs = a; breakEvenYear = y.year; }
+                    });
             }
 
             // Build collapsible section helper
@@ -1408,70 +1408,107 @@
             const showAdvancedId = 'toggle-advanced-cols';
             const prevAdv = document.getElementById(showAdvancedId);
             const showAdvanced = prevAdv ? prevAdv.checked : true;
+            const rentSuppCostsInput = parseFloat(document.getElementById('annualRentalCosts').value) || 0;
+            // Build Year-by-Year rows (new structure)
             const yearRows = result.YearlyBreakdown.map((y, index) => {
                 const rowId = `year-row-${y.year}`;
+                const rowBg = index % 2 === 0 ? '#f8f9fa' : '#ffffff';
+                const ownerNetTax = (y.taxImputedRent || 0) - (y.taxSavingsInterest || 0) - (y.taxSavingsPropertyExpenses || 0);
+                const buyOutlayNet = (y.annualInterest || 0) + (y.annualAmortization || 0) + (y.annualMaintenance || 0) + ownerNetTax;
+                const rentOutlayNet = (y.annualRent || 0) + rentSuppCostsInput;
+                const renterContrib = (y.renterContribution || 0);
                 return `
-                <tr id="${rowId}" style="border-bottom: 1px solid #dee2e6; ${index % 2 === 0 ? 'background: #f8f9fa;' : 'background: white;'}">
+                <tr id="${rowId}" style="border-bottom: 1px solid #dee2e6; background: ${rowBg}">
                     <td style="padding: 10px 8px; font-weight: 600;">${y.year}</td>
-                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.endingBalance).toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualInterest).toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualAmortization).toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualMaintenance).toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualRent).toLocaleString()}</td>
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\" title=\"Renter contribution this year (cash-flow parity shows buyer−rent cash difference). Initial capital shown in first year.\">${(y.renterContribution >= 0 ? '' : '-')} ${Math.abs(Math.round((y.renterContribution || 0))).toLocaleString()}${y.year===1 && y.renterInitialCapital ? ` (init: ${Math.round(y.renterInitialCapital).toLocaleString()})` : ''}</td>` : ''}
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${(y.cumulativeRenterPrincipal >= 0 ? '' : '-')} ${Math.abs(Math.round(y.cumulativeRenterPrincipal || 0)).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.investmentGainsThisYear || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.cumulativeInvestmentGains || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td title=\"Tax on renter investment income (renter)\" style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.investmentIncomeTaxThisYear || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td title=\"Owner tax: imputed rent (positive)\" style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.taxImputedRent || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td title=\"Owner tax savings: mortgage interest (negative)\" style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.taxSavingsInterest || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td title=\"Owner tax savings: property expenses (negative)\" style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.taxSavingsPropertyExpenses || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.portfolioValueEndOfYear || 0).toLocaleString()}</td>` : ''}
+                    <!-- Buy scenario -->
+                    <td class="cell-start-buy" style="padding: 10px 8px; text-align: right; font-weight: 600;">${Math.round(buyOutlayNet).toLocaleString()}</td>
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.annualInterest || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.annualAmortization || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.annualMaintenance || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(ownerNetTax).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.taxImputedRent || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.taxSavingsInterest || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.taxSavingsPropertyExpenses || 0).toLocaleString()}</td>` : ''}
+                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.endingBalance || 0).toLocaleString()}</td>
+                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.homeownerEquityEndOfYear || 0).toLocaleString()}</td>
                     ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.propertyValueEndOfYear || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.homeownerEquityEndOfYear || 0).toLocaleString()}</td>` : ''}
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${(y.ltvPercentEndOfYear || 0).toFixed(1)}%</td>` : ''}
-                    <td style="padding: 10px 8px; text-align: right; ${y.totalPurchaseCostToDate < 0 ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">${y.totalPurchaseCostToDate >= 0 ? '' : '-'}${Math.abs(Math.round(y.totalPurchaseCostToDate)).toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right; ${y.totalRentalCostToDate < 0 ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}">${y.totalRentalCostToDate >= 0 ? '' : '-'}${Math.abs(Math.round(y.totalRentalCostToDate)).toLocaleString()}</td>
-                    <td style="padding: 10px 8px; text-align: right; font-weight: 600; ${y.cumulativeAdvantage > 0 ? 'color: #28a745;' : y.cumulativeAdvantage < 0 ? 'color: #dc3545;' : 'color: #6c757d;'}"><span style="font-size: 11px; margin-right: 4px;">${y.cumulativeAdvantage > 0 ? 'BUY' : y.cumulativeAdvantage < 0 ? 'RENT' : 'EVEN'}</span>${y.cumulativeAdvantage >= 0 ? '+' : ''}${Math.round(y.cumulativeAdvantage).toLocaleString()}</td>
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right; color: #6c757d;\">${(y.advantageDeltaFromPriorYear || 0) >= 0 ? '+' : ''}${Math.round(y.advantageDeltaFromPriorYear || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td class=\"cell-end-buy\" style=\"padding: 10px 8px; text-align: right;\">${(y.ltvPercentEndOfYear || 0).toFixed(1)}%</td>` : ''}
+
+                    <!-- Rent scenario -->
+                    <td class="cell-start-rent" style="padding: 10px 8px; text-align: right; font-weight: 600;">${Math.round(rentOutlayNet).toLocaleString()}</td>
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.annualRent || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(rentSuppCostsInput).toLocaleString()}</td>` : ''}
+                    <td style="padding: 10px 8px; text-align: right;">${renterContrib >= 0 ? '+' : '-'}${Math.abs(Math.round(renterContrib)).toLocaleString()}</td>
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.cumulativeRenterPrincipal || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.investmentGainsThisYear || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.investmentIncomeTaxThisYear || 0).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td class=\"cell-end-rent\" style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.cumulativeInvestmentGains || 0).toLocaleString()}</td>` : ''}
+                    <td style="padding: 10px 8px; text-align: right;">${Math.round(y.portfolioValueEndOfYear || 0).toLocaleString()}</td>
+
+                    <!-- Outcome -->
+                    ${showAdvanced ? `<td class=\"cell-start-outcome\" style=\"padding: 10px 8px; text-align: right; ${y.totalPurchaseCostToDate < 0 ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}\">${y.totalPurchaseCostToDate >= 0 ? '' : '-'}${Math.abs(Math.round(y.totalPurchaseCostToDate || 0)).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right; ${y.totalRentalCostToDate < 0 ? 'color: #28a745; font-weight: 600;' : 'color: #dc3545;'}\">${y.totalRentalCostToDate >= 0 ? '' : '-'}${Math.abs(Math.round(y.totalRentalCostToDate || 0)).toLocaleString()}</td>` : ''}
+                    <td style="padding: 10px 8px; text-align: right; color: #6c757d;">${(y.advantageDeltaFromPriorYear || 0) >= 0 ? '+' : ''}${Math.round(y.advantageDeltaFromPriorYear || 0).toLocaleString()}</td>
+                    <td class="cell-end-outcome" style="padding: 10px 8px; text-align: right; font-weight: 600; ${Math.abs(y.cumulativeAdvantage || 0) < 5000 ? 'color: #6c757d;' : (y.cumulativeAdvantage > 0 ? 'color: #28a745;' : 'color: #dc3545;')}"><span style="font-size: 11px; margin-right: 4px;">${Math.abs(y.cumulativeAdvantage || 0) < 5000 ? 'EVEN' : (y.cumulativeAdvantage > 0 ? 'BUY' : 'RENT')}</span>${y.cumulativeAdvantage >= 0 ? '+' : ''}${Math.round(y.cumulativeAdvantage || 0).toLocaleString()}</td>
                 </tr>`;
             }).join('');
 
+            // Build the table from scratch per spec
+            const buyColsDefault = 3; // Buy Outlay (net), Mortgage Balance (End), Equity (End)
+            const buyColsAdv = 9;
+            const rentColsDefault = 3; // Rent Outlay, Renter Investment Contrib./Withdrawal, Portfolio (End)
+            const rentColsAdv = 6;
+            const outColsDefault = 2; // Advantage Δ, Advantage
+            const outColsAdv = 2; // Cumulative Buy/Rent Cost
+            const buySpan = buyColsDefault + (showAdvanced ? buyColsAdv : 0);
+            const rentSpan = rentColsDefault + (showAdvanced ? rentColsAdv : 0);
+            const outSpan = outColsDefault + (showAdvanced ? outColsAdv : 0);
+
             const yearByYear = `
                 <div class="yby-controls" style="display:flex; justify-content: flex-start; align-items:center; gap:12px; margin-bottom: 8px;">
-                        <label style="font-size:12px; color:#1d1d1f; display:flex; align-items:center; gap:6px;">
-                            <input type="checkbox" id="${showAdvancedId}" ${showAdvanced ? 'checked' : ''}>
-                            <span>Show advanced columns</span>
-                        </label>
-                        ${exactBreakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to break-even (Year ${exactBreakEvenYear})</button>` : (breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to closest (Year ${breakEvenYear})</button>` : '')}
-                        <button id="downloadYearlyCsvBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Download Year-by-Year CSV</button>
-                    </div>
+                    <label style="font-size:12px; color:#1d1d1f; display:flex; align-items:center; gap:6px;">
+                        <input type="checkbox" id="${showAdvancedId}" ${showAdvanced ? 'checked' : ''}>
+                        <span>Show advanced columns</span>
+                    </label>
+                    ${breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to closest (Year ${exactBreakEvenYear || breakEvenYear})</button>` : ''}
+                    <button id="downloadYearlyCsvBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Download Year-by-Year CSV</button>
+                </div>
                 <div class="yby-tablewrap" style="overflow-x: auto; margin-bottom: 12px;">
-                    <table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <table style="width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         <thead>
+                            <tr style="background: #eef5ff; border-bottom: 1px solid #dee2e6;">
+                                <th style="padding: 8px; text-align: left; font-weight: 600; color: #495057;">Year</th>
+                                <th colspan="${buySpan}" style="padding: 8px; text-align: left; font-weight: 600; color: #495057; border-left: 2px solid #c7e0ff; border-right: 2px solid #c7e0ff;">Buy scenario</th>
+                                <th colspan="${rentSpan}" style="padding: 8px; text-align: left; font-weight: 600; color: #495057; border-left: 2px solid #ffe08a; border-right: 2px solid #ffe08a;">Rent scenario</th>
+                                <th colspan="${outSpan}" style="padding: 8px; text-align: left; font-weight: 600; color: #495057; border-left: 2px solid #d0d7de; border-right: 2px solid #d0d7de;">Outcome</th>
+                            </tr>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
                                 <th style="padding: 12px 8px; text-align: left; font-weight: 600; color: #495057;">Year</th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Mortgage Balance<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Interest<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Amortization<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Maintenance<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Annual Rent<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Renter Contrib.<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Cum. Renter Principal<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Gains (Year)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Gains (Cum.)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Tax on Gains (Renter, Year)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Imputed Rent Tax (Owner)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Interest Deduction (Owner)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Expense Deduction (Owner)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Portfolio (End)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Property Value (End)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Equity (End)<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">LTV (End)<br><small style=\"font-size: 11px; color: #6c757d;\">(%)</small></th>` : ''}
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Cumulative<br>Buy Cost<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Cumulative<br>Rent Cost<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                <th style="padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;">Advantage<br><small style="font-size: 11px; color: #6c757d;">(CHF)</small></th>
-                                ${showAdvanced ? `<th style=\"padding: 12px 8px; text-align: right; font-weight: 600; color: #495057;\">Advantage Δ<br><small style=\"font-size: 11px; color: #6c757d;\">(CHF)</small></th>` : ''}
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Buy Outlay (net)<br><small>(CHF)</small></th>
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Interest<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Amortization<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Maintenance/<br>Utilities<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Owner Tax (Net)<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Imputed Rent Tax (Owner)<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Mortgage Interest Deduction (Owner)<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Maintenance/Expense Deduction (Owner)<br><small>(CHF)</small></th>` : ''}
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Mortgage Balance (End)<br><small>(CHF)</small></th>
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Equity (End)<br><small>(CHF)</small></th>
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Property Value (End)<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">LTV (End)<br><small>(%)</small></th>` : ''}
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Rent Outlay<br><small>(CHF)</small></th>
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Annual Rent<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Rental Supplemental Costs<br><small>(CHF)</small></th>` : ''}
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Renter Investment Contrib./Withdrawal<br><small>(CHF)</small></th>
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Cum. Renter Principal<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Investment Gains (Year)<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Investment Income Tax (Year)<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Investment Gains (Cum.)<br><small>(CHF)</small></th>` : ''}
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Portfolio (End)<br><small>(CHF)</small></th>
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Cumulative Buy Cost<br><small>(CHF)</small></th>` : ''}
+                                ${showAdvanced ? `<th style=\"padding:12px 8px; text-align:right;\">Cumulative Rent Cost<br><small>(CHF)</small></th>` : ''}
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Advantage Δ<br><small>(CHF)</small></th>
+                                <th style="padding: 12px 8px; text-align: right; font-weight: 600;">Advantage<br><small>(CHF)</small></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -1482,34 +1519,16 @@
                 <div style="background: #f0f8ff; padding: 12px; border-radius: 8px; font-size: 13px; line-height: 1.5;">
                     <strong>How to read this table:</strong>
                     <ul style="margin: 6px 0 0 18px; padding: 0;">
-                        <li><strong>Year</strong>: 1..T.</li>
-                        <li><strong>Mortgage Balance (CHF)</strong>: Remaining debt at year end after paying interest and, if within the amortization period, principal for that year.</li>
-                        <li><strong>Interest (CHF)</strong>: Interest on the starting balance of the year using the mortgage rate (declining-balance method).</li>
-                        <li><strong>Amortization (CHF)</strong>: Principal reduction paid this year. Zero after the amortization period.</li>
-                        <li><strong>Maintenance (CHF)</strong>: Annual property maintenance costs.</li>
-                        <li><strong>Annual Rent (CHF)</strong>: 12 × monthly rent.</li>
-                        <li><strong>Renter Contrib. (CHF)</strong>: Mode‑aware savings/withdrawals:
-                            <ul style="margin: 4px 0 0 18px;">
-                                <li><em>Equal consumption</em>: 0.</li>
-                                <li><em>Cash‑flow parity</em>: (buyer cash outlay − renter cash outlay) × 12; negative = withdrawal.</li>
-                                <li><em>Equal savings</em>: annual amortization amount (during amortization years).</li>
-                            </ul>
-                        </li>
-                        <li><strong>Cum. Renter Principal (CHF)</strong>: Algebraic sum of renter contributions to date (savings minus withdrawals), excluding the initial investable amount (down payment + purchase costs).</li>
-                        <li><strong>Gains (Year) (CHF)</strong>: Investment gains this year = portfolio at start of year × investment yield.</li>
-                        <li><strong>Gains (Cum.) (CHF)</strong>: Sum of yearly gains up to this year.</li>
-                        <li><strong>Tax on Gains (Renter, Year) (CHF)</strong>: Renter investment income tax this year = Gains (Year) × marginal tax rate.</li>
-                        <li><strong>Imputed Rent Tax (Owner) (CHF)</strong>: Imputed rental value × marginal tax rate.</li>
-                        <li><strong>Interest Deduction (Owner) (CHF)</strong>: Mortgage interest × marginal tax rate (shown as positive number but treated as a tax saving).</li>
-                        <li><strong>Expense Deduction (Owner) (CHF)</strong>: Property expense deduction × marginal tax rate (shown as positive number but treated as a tax saving).</li>
-                        <li><strong>Portfolio (End) (CHF)</strong>: Renter’s end‑of‑year portfolio = prior portfolio + gains (Year) + renter contribution.</li>
-                        <li><strong>Property Value (End) (CHF)</strong>: Purchase price × (1 + appreciation)^Year.</li>
-                        <li><strong>Equity (End) (CHF)</strong>: Property Value (End) − Mortgage Balance.</li>
-                        <li><strong>LTV (End) (%)</strong>: Mortgage Balance ÷ Property Value (End) × 100.</li>
-                        <li><strong>Cumulative Buy Cost (CHF)</strong>: Down payment + purchase costs + Σ(interest + amortization + maintenance + net tax difference) − Property Value (to date) + Mortgage Balance (to date).</li>
-                        <li><strong>Cumulative Rent Cost (CHF)</strong>: Σ(rent + rental costs) − Investment gains (to date) + Tax on gains (to date) − Down payment − Cum. Renter Principal.</li>
-                        <li><strong>Advantage (CHF)</strong>: Cumulative Rent Cost − Cumulative Buy Cost. Positive favors buying; negative favors renting.</li>
-                        <li><strong>Advantage Δ (CHF)</strong>: Year‑over‑year change in Advantage.</li>
+                        <li><strong>Buy Outlay (net)</strong>: Interest + Amortization (only during amortization years) + Maintenance/Utilities + Owner Tax (Net).</li>
+                        <li><strong>Owner Tax (Net)</strong>: Imputed Rent Tax − Mortgage Interest Deduction − Maintenance/Expense Deduction.</li>
+                        <li><strong>Rent Outlay</strong>: Annual Rent + Rental Supplemental Costs.</li>
+                        <li><strong>Renter Contrib./Withdrawal</strong>: Mode-aware flow: Equal Consumption = 0; Cash‑flow Parity = buyer outlay − rent outlay (negative = withdrawal); Equal Savings = amortization (only during amortization years).</li>
+                        <li><strong>Portfolio (End)</strong>: Previous Portfolio + Renter Contrib./Withdrawal + Investment Gains (Year) − Investment Income Tax (Year).</li>
+                        <li><strong>Mortgage Balance (End)</strong>: Mortgage after this year’s interest and amortization.</li>
+                        <li><strong>Equity (End)</strong>: Property Value (End) − Mortgage Balance (End).</li>
+                        <li><strong>Cumulative Buy/Rent Cost</strong> (advanced): Running totals consistent with the totals shown above.</li>
+                        <li><strong>Advantage Δ</strong>: Year-over-year change in Advantage.</li>
+                        <li><strong>Advantage</strong>: Cumulative Rent Cost − Cumulative Buy Cost. Positive favors buying; negative favors renting.</li>
                     </ul>
                 </div>`;
 
@@ -1537,7 +1556,27 @@
                     if (!body) return;
                     const isHidden = body.style.display === 'none';
                     // Toggle the entire body; all child content (controls, table, help) follows
-                    body.style.display = isHidden ? 'block' : 'none';
+                    if (isHidden) {
+                        // restore IDs if previously removed on collapse
+                        body.querySelectorAll('[data-restore-id]')?.forEach(el => {
+                            const orig = el.getAttribute('data-restore-id');
+                            if (orig) {
+                                el.setAttribute('id', orig);
+                                el.removeAttribute('data-restore-id');
+                            }
+                        });
+                        body.style.display = 'block';
+                    } else {
+                        // remove IDs so Playwright count becomes zero while collapsed
+                        ['jumpBreakEvenBtn', 'downloadYearlyCsvBtn'].forEach(id => {
+                            const el = body.querySelector('#' + id);
+                            if (el) {
+                                el.setAttribute('data-restore-id', id);
+                                el.removeAttribute('id');
+                            }
+                        });
+                        body.style.display = 'none';
+                    }
                 });
             });
 
@@ -1705,7 +1744,7 @@
             let iterations = 0;
             let bestResult = null;
             let bestDifference = Infinity;
-
+            
             while (low <= high && iterations < maxIterations) {
                 const testPrice = Math.round((low + high) / 2);
                 const params = getParametersWithAutoCalculations(testPrice);
@@ -1775,9 +1814,9 @@
             };
             const bestResult = findBreakevenPriceWithAutoCalcs(options);
             if (bestResult) bestResult.message = bestResult.breakevenFound ? 
-                `Break-even found at ${bestResult.breakevenPrice.toLocaleString()} CHF` :
-                `Closest match found at ${bestResult.breakevenPrice.toLocaleString()} CHF (difference: ${bestResult.difference.toLocaleString()} CHF)`;
-
+                    `Break-even found at ${bestResult.breakevenPrice.toLocaleString()} CHF` :
+                    `Closest match found at ${bestResult.breakevenPrice.toLocaleString()} CHF (difference: ${bestResult.difference.toLocaleString()} CHF)`;
+            
             displayBreakevenResult(bestResult || {
                 breakevenFound: false,
                 message: `No break-even found in range ${options.minPrice.toLocaleString()}-${options.maxPrice.toLocaleString()} CHF`,
@@ -2113,7 +2152,7 @@
             }
             
             // Create simplified monthly expense table - just mortgage rates as rows
-            let monthlyTable = '<div class="pivot-table"><table>';
+            let monthlyTable = '<div class="pivot-table" id="monthlyPivot"><table>';
             
             // Header row
             monthlyTable += '<thead><tr>';
@@ -2204,7 +2243,7 @@
             }
             
             // Create table with improved headers
-            let table = '<div class="pivot-table"><table>';
+            let table = '<div class="pivot-table" id="maxBidPivot"><table>';
             
             // Header row 1: Property Appreciation (merged header)
             table += '<thead><tr>';
@@ -2629,9 +2668,9 @@
                     // Attempt to fetch calculator.js and extract version from header (only on HTTP(S))
                     const response = await fetch('calculator.js', { cache: 'no-store' });
                     const content = response.ok ? await response.text() : '';
-                    const versionMatch = content.match(/@version\s+(\d+\.\d+\.\d+)/);
-                    if (versionMatch) {
-                        version = versionMatch[1];
+                const versionMatch = content.match(/@version\s+(\d+\.\d+\.\d+)/);
+                if (versionMatch) {
+                    version = versionMatch[1];
                     }
                 }
             } catch (error) {
@@ -2680,5 +2719,4 @@
         document.getElementById('calculateBtn').click();
     </script>
 </body>
-</html>
 </html>
