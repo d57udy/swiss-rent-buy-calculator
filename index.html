@@ -1438,14 +1438,12 @@
             }).join('');
 
             const yearByYear = `
-                <div style="display:flex; justify-content: space-between; align-items:center; margin-bottom: 8px;">
-                    <div style="font-weight:600; color:#1d1d1f;">Year-by-Year Analysis</div>
-                    <div style="display:flex; gap:8px; align-items:center;">
+                <div style="display:flex; justify-content: flex-start; align-items:center; gap:12px; margin-bottom: 8px;">
                         <label style="font-size:12px; color:#1d1d1f; display:flex; align-items:center; gap:6px;">
                             <input type="checkbox" id="${showAdvancedId}" ${showAdvanced ? 'checked' : ''}>
                             <span>Show advanced columns</span>
                         </label>
-                        ${breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to break-even (or closest, Year ${breakEvenYear})</button>` : ''}
+                        ${exactBreakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to break-even (Year ${exactBreakEvenYear})</button>` : (breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to closest (Year ${breakEvenYear})</button>` : '')}
                         <button id="downloadYearlyCsvBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Download Year-by-Year CSV</button>
                     </div>
                 </div>
@@ -1692,35 +1690,29 @@
             return params;
         }
 
-        // Break-even finder
-        document.getElementById('breakevenBtn').addEventListener('click', () => {
-            // Create a custom findBreakevenPrice that handles auto-calculations
-            const options = {
-                minPrice: parseFloat(document.getElementById('beMinPrice').value),
-                maxPrice: parseFloat(document.getElementById('beMaxPrice').value),
-                tolerance: parseFloat(document.getElementById('beTolerance').value)
-            };
-            
-            // Store original purchase price for comparison
-            const originalPurchasePrice = parseFloat(document.getElementById('purchasePrice').value);
-            
-            // Custom binary search with proper auto-calculations
-            let low = options.minPrice;
-            let high = options.maxPrice;
+        // Shared helper: find breakeven price with auto-calcs and local refinement
+        function findBreakevenPriceWithAutoCalcs(options, overrides = {}) {
+            const minPrice = options.minPrice;
+            const maxPrice = options.maxPrice;
+            const tolerance = options.tolerance;
+            const maxIterations = options.maxIterations || 1000;
+            const originalPurchasePrice = options.originalPrice ?? (parseFloat(document.getElementById('purchasePrice').value) || 0);
+
+            let low = minPrice;
+            let high = maxPrice;
             let iterations = 0;
             let bestResult = null;
             let bestDifference = Infinity;
-            const tolerance = options.tolerance;
-            const maxIterations = 1000;
-            
+
             while (low <= high && iterations < maxIterations) {
                 const testPrice = Math.round((low + high) / 2);
                 const params = getParametersWithAutoCalculations(testPrice);
-                
+                if (typeof overrides.propertyAppreciationRate === 'number') params.propertyAppreciationRate = overrides.propertyAppreciationRate;
+                if (typeof overrides.investmentYieldRate === 'number') params.investmentYieldRate = overrides.investmentYieldRate;
+                if (typeof overrides.mortgageRate === 'number') params.mortgageRate = overrides.mortgageRate;
                 const result = SwissRentBuyCalculator.calculate(params);
-                clearStale();
+                clearStale && clearStale();
                 const difference = Math.abs(result.ResultValue);
-                
                 if (difference < bestDifference) {
                     bestDifference = difference;
                     bestResult = {
@@ -1733,54 +1725,61 @@
                         priceDifference: testPrice - originalPurchasePrice
                     };
                 }
-                
-                if (difference <= tolerance) {
-                    break;
-                }
-                
-                if (result.ResultValue > 0) {
-                    low = testPrice + 1;
-                } else {
-                    high = testPrice - 1;
-                }
-                
+                if (difference <= tolerance) break;
+                if (result.ResultValue > 0) low = testPrice + 1; else high = testPrice - 1;
                 iterations++;
             }
-            // Local refinement: scan a small window around best price to overcome rounding plateaus
-            if (bestResult && !bestResult.breakevenFound) {
-                const window = 5000; // CHF
-                let refinedBest = { ...bestResult };
-                for (let p = Math.max(options.minPrice, bestResult.breakevenPrice - window); p <= Math.min(options.maxPrice, bestResult.breakevenPrice + window); p += 1) {
-                    const params = getParametersWithAutoCalculations(p);
-                    const r = SwissRentBuyCalculator.calculate(params);
-                    const diff = Math.abs(r.ResultValue);
-                    if (diff < refinedBest.difference) {
-                        refinedBest = {
-                            breakevenFound: diff <= tolerance,
+
+            if (!bestResult) return { breakevenFound: false, iterations };
+
+            if (!bestResult.breakevenFound) {
+                // Adaptive refinement: window and step scale with tolerance
+                const window = Math.min(5000, Math.max(200, Math.round(tolerance * 10)));
+                const step = Math.max(1, Math.min(250, Math.round(Math.max(10, tolerance / 20))));
+                let refined = { ...bestResult };
+                for (let p = Math.max(minPrice, bestResult.breakevenPrice - window); p <= Math.min(maxPrice, bestResult.breakevenPrice + window); p += step) {
+                    const paramsFine = getParametersWithAutoCalculations(p);
+                    if (typeof overrides.propertyAppreciationRate === 'number') paramsFine.propertyAppreciationRate = overrides.propertyAppreciationRate;
+                    if (typeof overrides.investmentYieldRate === 'number') paramsFine.investmentYieldRate = overrides.investmentYieldRate;
+                    if (typeof overrides.mortgageRate === 'number') paramsFine.mortgageRate = overrides.mortgageRate;
+                    const rFine = SwissRentBuyCalculator.calculate(paramsFine);
+                    const dFine = Math.abs(rFine.ResultValue);
+                    if (dFine < refined.difference) {
+                        refined = {
+                            breakevenFound: dFine <= tolerance,
                             breakevenPrice: p,
-                            resultValue: r.ResultValue,
-                            decision: r.Decision,
-                            difference: diff,
-                            originalPrice: bestResult.originalPrice,
-                            priceDifference: p - bestResult.originalPrice
+                            resultValue: rFine.ResultValue,
+                            decision: rFine.Decision,
+                            difference: dFine,
+                            originalPrice: originalPurchasePrice,
+                            priceDifference: p - originalPurchasePrice
                         };
-                        if (refinedBest.breakevenFound) break;
+                        if (refined.breakevenFound) break;
                     }
                 }
-                bestResult = refinedBest;
+                bestResult = refined;
             }
+            bestResult.iterations = bestResult.iterations ?? 0;
+            return bestResult;
+        }
 
-            if (bestResult) {
-                bestResult.iterations = iterations;
-                bestResult.message = bestResult.breakevenFound ? 
-                    `Break-even found at ${bestResult.breakevenPrice.toLocaleString()} CHF` :
-                    `Closest match found at ${bestResult.breakevenPrice.toLocaleString()} CHF (difference: ${bestResult.difference.toLocaleString()} CHF)`;
-            }
-            
+        // Break-even finder
+        document.getElementById('breakevenBtn').addEventListener('click', () => {
+            const options = {
+                minPrice: parseFloat(document.getElementById('beMinPrice').value),
+                maxPrice: parseFloat(document.getElementById('beMaxPrice').value),
+                tolerance: parseFloat(document.getElementById('beTolerance').value),
+                originalPrice: parseFloat(document.getElementById('purchasePrice').value)
+            };
+            const bestResult = findBreakevenPriceWithAutoCalcs(options);
+            if (bestResult) bestResult.message = bestResult.breakevenFound ? 
+                `Break-even found at ${bestResult.breakevenPrice.toLocaleString()} CHF` :
+                `Closest match found at ${bestResult.breakevenPrice.toLocaleString()} CHF (difference: ${bestResult.difference.toLocaleString()} CHF)`;
+
             displayBreakevenResult(bestResult || {
                 breakevenFound: false,
                 message: `No break-even found in range ${options.minPrice.toLocaleString()}-${options.maxPrice.toLocaleString()} CHF`,
-                iterations: iterations
+                iterations: bestResult?.iterations || 0
             });
         });
 
@@ -1937,81 +1936,18 @@
                         
                         let maxBidPrice = null;
                         try {
-                            // Use a simplified break-even finder for speed
-                            let low = options.minPrice;
-                            let high = options.maxPrice;
-                            let iterations = 0;
-                            let bestPrice = null;
-                            let bestDifference = Infinity;
-                            
-                            while (low <= high && iterations < options.maxIterations) {
-                                const testPrice = Math.round((low + high) / 2);
-                                const paramsWithPrice = getParametersWithAutoCalculations(testPrice);
-                                
-                                // Override with sweep parameters
-                                paramsWithPrice.propertyAppreciationRate = propRate;
-                                paramsWithPrice.investmentYieldRate = invRate;
-                                paramsWithPrice.mortgageRate = mortRate;
-                                
-                                const result = SwissRentBuyCalculator.calculate(paramsWithPrice);
-                                const difference = Math.abs(result.ResultValue);
-                                
-                                if (difference < bestDifference) {
-                                    bestDifference = difference;
-                                    bestPrice = testPrice;
-                                }
-                                
-                                if (difference <= options.tolerance) {
-                                    break;
-                                }
-                                
-                                if (result.ResultValue > 0) {
-                                    low = testPrice + 1;
-                                } else {
-                                    high = testPrice - 1;
-                                }
-                                
-                                iterations++;
-                            }
-                            
-                            // Determine if we found a good break-even or hit search limits
-                            if (bestDifference <= options.tolerance) {
-                                // Found good break-even within tolerance
-                                maxBidPrice = bestPrice;
-                            } else {
-                                // Didn't find good break-even - check if we're hitting search boundaries
-                                
-                                // Test the boundary conditions to see where the true max bid lies
-                                const maxPriceParams = getParametersWithAutoCalculations(options.maxPrice);
-                                maxPriceParams.propertyAppreciationRate = propRate;
-                                maxPriceParams.investmentYieldRate = invRate;
-                                maxPriceParams.mortgageRate = mortRate;
-                                const maxPriceResult = SwissRentBuyCalculator.calculate(maxPriceParams);
-                                
-                                const minPriceParams = getParametersWithAutoCalculations(options.minPrice);
-                                minPriceParams.propertyAppreciationRate = propRate;
-                                minPriceParams.investmentYieldRate = invRate;
-                                minPriceParams.mortgageRate = mortRate;
-                                const minPriceResult = SwissRentBuyCalculator.calculate(minPriceParams);
-                                
-                                if (maxPriceResult.ResultValue > 0) {
-                                    // Even at max price, buying is still cheaper - true max bid is above search range
-                                    maxBidPrice = options.maxPrice; // Will be displayed as ">4M"
-                                } else if (minPriceResult.ResultValue < 0) {
-                                    // Even at min price, renting is still cheaper - true max bid is below search range
-                                    maxBidPrice = options.minPrice; // Will be displayed as "<1.5M"
-                                } else {
-                                    // True max bid is somewhere in the range, use our best approximation
-                                    // But if bestPrice is too close to boundaries, still indicate limit
-                                    if (bestPrice >= options.maxPrice - 1000) {
-                                        maxBidPrice = options.maxPrice; // Near max boundary
-                                    } else if (bestPrice <= options.minPrice + 1000) {
-                                        maxBidPrice = options.minPrice; // Near min boundary
-                                    } else {
-                                        maxBidPrice = bestPrice; // Use best approximation
-                                    }
-                                }
-                            }
+                            const best = findBreakevenPriceWithAutoCalcs({
+                                minPrice: options.minPrice,
+                                maxPrice: options.maxPrice,
+                                tolerance: options.tolerance,
+                                maxIterations: options.maxIterations,
+                                originalPrice: parseFloat(document.getElementById('purchasePrice').value) || 0
+                            }, {
+                                propertyAppreciationRate: propRate,
+                                investmentYieldRate: invRate,
+                                mortgageRate: mortRate
+                            });
+                            maxBidPrice = best?.breakevenPrice ?? null;
                             
                         } catch (error) {
                             console.warn(`Error calculating max bid for combination: prop=${propRate}, inv=${invRate}, mort=${mortRate}`, error);
@@ -2741,4 +2677,5 @@
         document.getElementById('calculateBtn').click();
     </script>
 </body>
+</html>
 </html>
