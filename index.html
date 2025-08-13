@@ -619,10 +619,10 @@
                 
                 <div class="input-group">
                     <div class="input-label">
-                        Annual Maintenance Costs
+                        Annual Maintenance Cost and Utilities
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">Annual costs for property maintenance, repairs, and upkeep. Typically 1-1.5% of property value per year.</span>
+                            <span class="tooltiptext">Annual costs for maintenance, repairs, building admin/HOA and typical owner utilities (e.g., heating, common services). Rule of thumb: 1.0–1.5% of property value per year.</span>
                         </div>
                     </div>
                     <div class="checkbox-container">
@@ -649,6 +649,8 @@
                     </div>
                 </div>
             </div>
+
+            
             
             <!-- Tax Parameters Section -->
             <div class="form-section">
@@ -677,7 +679,7 @@
                         Property Tax Deductions
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">Annual tax-deductible expenses for property ownership: maintenance, repairs, mortgage interest, insurance, utilities.</span>
+                            <span class="tooltiptext">Annual tax-deductible expenses for property ownership: maintenance/repairs, select insurance, and similar. Utilities (heating/electricity/admin) are consumption and not deductible here.</span>
                         </div>
                     </div>
                     <div class="input-container">
@@ -740,10 +742,10 @@
                 
                 <div class="input-group">
                     <div class="input-label">
-                        Investment Yield Rate
+                        Investment Yield Rate (pre-tax)
                         <div class="tooltip">
                             <span class="info-icon">i</span>
-                            <span class="tooltiptext">Expected annual return on alternative investments (stocks, bonds, funds) if you rent instead of buying.</span>
+                            <span class="tooltiptext">Enter your expected pre-tax annual return. The calculator applies income tax on investment gains consistently across all modes (Moneyland-aligned). This affects renter portfolio growth and any savings contributions/withdrawals.</span>
                         </div>
                     </div>
                     <div class="input-container">
@@ -831,7 +833,10 @@
                 </div>
             </div>
 
-            <button class="button" id="calculateBtn">Calculate</button>
+            <div style="display:flex; align-items:center; gap:12px;">
+                <button class="button" id="calculateBtn">Calculate</button>
+                <span id="staleNotice" style="display:none; color:#bf5b04; font-weight:600; align-self:center;">Results are outdated. Press Calculate to refresh.</span>
+            </div>
             
             <div id="singleResults" class="results" style="display: none;"></div>
         </div>
@@ -1084,7 +1089,20 @@
     <script src="calculator.js"></script>
     <script>
         // Auto-calculation functions
+        let resultsAreStale = false;
+        function markStale() {
+            resultsAreStale = true;
+            const n = document.getElementById('staleNotice');
+            if (n) n.style.display = 'inline';
+        }
+        function clearStale() {
+            resultsAreStale = false;
+            const n = document.getElementById('staleNotice');
+            if (n) n.style.display = 'none';
+        }
+
         function updateCalculatedFields() {
+            markStale();
             const purchasePrice = parseFloat(document.getElementById('purchasePrice').value) || 0;
             const monthlyRent = parseFloat(document.getElementById('monthlyRent').value) || 0;
             const amortizationYears = parseFloat(document.getElementById('amortizationYears').value) || 10;
@@ -1218,6 +1236,7 @@
         document.getElementById('monthlyRent').addEventListener('input', updateCalculatedFields);
         document.getElementById('amortizationYears').addEventListener('input', updateCalculatedFields);
         
+        
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', updateCalculatedFields);
         });
@@ -1229,6 +1248,23 @@
         document.querySelectorAll('input[name="amortizationMode"]').forEach(radio => {
             radio.addEventListener('change', updateCalculatedFields);
         });
+
+        // Global stale markers: any input/select change marks results as stale
+        const singleTab = document.getElementById('single');
+        if (singleTab) {
+            singleTab.addEventListener('input', (e) => {
+                const t = e.target;
+                if (t && (t.matches('input') || t.matches('select') || t.matches('textarea'))) {
+                    markStale();
+                }
+            });
+            singleTab.addEventListener('change', (e) => {
+                const t = e.target;
+                if (t && (t.matches('input') || t.matches('select') || t.matches('textarea'))) {
+                    markStale();
+                }
+            });
+        }
 
         // Single calculation
         document.getElementById('calculateBtn').addEventListener('click', () => {
@@ -1254,6 +1290,7 @@
 
             const result = SwissRentBuyCalculator.calculate(params);
             displaySingleResult(result);
+            clearStale();
         });
 
         function displaySingleResult(result) {
@@ -1275,25 +1312,24 @@
             const buyVsRentDelta = Math.round(buyMonthly - rentMonthly);
             const rentVsBuyDelta = -buyVsRentDelta;
 
-            // Compute break-even year (first year with cumulativeAdvantage >= 0 and previous < 0)
-            let breakEvenYear = null;
+            // Compute break-even year (exact sign change across years)
+            let breakEvenYear = null; // closest year (used elsewhere)
+            let exactBreakEvenYear = null; // only when a true crossing occurs between consecutive years
             if (Array.isArray(result.YearlyBreakdown)) {
-                for (let i = 0; i < result.YearlyBreakdown.length; i++) {
+                for (let i = 1; i < result.YearlyBreakdown.length; i++) {
+                    const prev = result.YearlyBreakdown[i - 1].cumulativeAdvantage;
                     const curr = result.YearlyBreakdown[i].cumulativeAdvantage;
-                    const prev = i > 0 ? result.YearlyBreakdown[i - 1].cumulativeAdvantage : null;
-                    if ((prev !== null && prev < 0 && curr >= 0) || (i === 0 && curr >= 0)) {
-                        breakEvenYear = result.YearlyBreakdown[i].year;
+                    if ((prev < 0 && curr >= 0) || (prev > 0 && curr <= 0)) {
+                        exactBreakEvenYear = result.YearlyBreakdown[i].year;
                         break;
                     }
                 }
-                if (!breakEvenYear) {
-                    // fallback: year with minimal absolute advantage
-                    let minAbs = Infinity;
-                    result.YearlyBreakdown.forEach(y => {
-                        const a = Math.abs(y.cumulativeAdvantage);
-                        if (a < minAbs) { minAbs = a; breakEvenYear = y.year; }
-                    });
-                }
+                // Fallback closest year for table navigation
+                let minAbs = Infinity;
+                result.YearlyBreakdown.forEach(y => {
+                    const a = Math.abs(y.cumulativeAdvantage);
+                    if (a < minAbs) { minAbs = a; breakEvenYear = y.year; }
+                });
             }
 
             // Build collapsible section helper
@@ -1311,11 +1347,12 @@
             }
 
             // Summary with mode badge
+            const compareLine = `${result.CompareText}${exactBreakEvenYear ? ` Break-even is after ${exactBreakEvenYear} years.` : ''}`;
             const summary = `
                 <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                     <div style="flex: 1; padding: 16px; background: white; border-radius: 8px; border-left: 4px solid ${decisionClass === 'buy' ? '#34c759' : decisionClass === 'rent' ? '#ff3b30' : '#ff9500'};">
                         <div style="font-size: 18px; font-weight: 600; margin-bottom: 8px; color: ${decisionClass === 'buy' ? '#34c759' : decisionClass === 'rent' ? '#ff3b30' : '#ff9500'};">${result.Decision}</div>
-                        <div style="font-size: 15px; color: #1d1d1f;">${result.CompareText}</div>
+                        <div style="font-size: 15px; color: #1d1d1f;">${compareLine}</div>
                     </div>
                     <div title="${modeInfo}" style="white-space: nowrap; font-size: 12px; color: #1d1d1f; background: #f2f2f7; border: 1px solid #e5e5ea; padding: 8px 10px; border-radius: 999px;">Mode: <strong>${modeText}</strong></div>
                 </div>`;
@@ -1332,7 +1369,7 @@
                         <div style="font-weight: 600; color: #007aff; margin-bottom: 8px;">Monthly (Buying)</div>
                         <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Interest</span><span>CHF ${result.MonthlyInterestPayment.toLocaleString()}</span></div>
                         <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Amortization</span><span>CHF ${result.MonthlyAmortizationPayment.toLocaleString()}</span></div>
-                        <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Maintenance</span><span>CHF ${result.MonthlyMaintenanceCosts.toLocaleString()}</span></div>
+                        <div class="result-item" style="border-bottom: 1px solid #d2d2d7; margin-bottom: 8px;"><span>Maintenance/Utilities</span><span>CHF ${result.MonthlyMaintenanceCosts.toLocaleString()}</span></div>
                         <div class="result-item" style="font-weight: 600; color: #007aff;"><span>Total</span><span>CHF ${result.TotalMonthlyExpenses.toLocaleString()}</span></div>
                         <div class="result-item" style="margin-top: 6px; color: ${buyDeltaColor};"><span>vs Monthly Renting</span><span>${buyDeltaText}</span></div>
                     </div>
@@ -1381,7 +1418,7 @@
                     <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualAmortization).toLocaleString()}</td>
                     <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualMaintenance).toLocaleString()}</td>
                     <td style="padding: 10px 8px; text-align: right;">${Math.round(y.annualRent).toLocaleString()}</td>
-                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${(y.renterContribution >= 0 ? '' : '-')} ${Math.abs(Math.round(y.renterContribution || 0)).toLocaleString()}</td>` : ''}
+                    ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\" title=\"Renter contribution this year (cash-flow parity shows buyer−rent cash difference). Initial capital shown in first year.\">${(y.renterContribution >= 0 ? '' : '-')} ${Math.abs(Math.round((y.renterContribution || 0))).toLocaleString()}${y.year===1 && y.renterInitialCapital ? ` (init: ${Math.round(y.renterInitialCapital).toLocaleString()})` : ''}</td>` : ''}
                     ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${(y.cumulativeRenterPrincipal >= 0 ? '' : '-')} ${Math.abs(Math.round(y.cumulativeRenterPrincipal || 0)).toLocaleString()}</td>` : ''}
                     ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.investmentGainsThisYear || 0).toLocaleString()}</td>` : ''}
                     ${showAdvanced ? `<td style=\"padding: 10px 8px; text-align: right;\">${Math.round(y.cumulativeInvestmentGains || 0).toLocaleString()}</td>` : ''}
@@ -1681,6 +1718,7 @@
                 const params = getParametersWithAutoCalculations(testPrice);
                 
                 const result = SwissRentBuyCalculator.calculate(params);
+                clearStale();
                 const difference = Math.abs(result.ResultValue);
                 
                 if (difference < bestDifference) {

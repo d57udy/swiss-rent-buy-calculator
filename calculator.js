@@ -69,7 +69,7 @@ class SwissRentBuyCalculator {
             purchasePrice = 2000000,           // CHF 2M - typical Swiss property price
             downPayment = 347000,              // Variable down payment
             mortgageRate = 0.009,              // 0.9% - current Swiss mortgage rates
-            annualMaintenanceCosts = 20000,    // CHF 20K - typical maintenance
+            annualMaintenanceCosts = 20000,    // CHF per year: maintenance and utilities/admin combined
             amortizationYears = 10,            // 10 years - common amortization period
             annualAmortization = 22199,        // Variable amortization amount
             totalRenovations = 0,              // No renovations by default
@@ -156,10 +156,12 @@ class SwissRentBuyCalculator {
             supplementalMaintenanceCosts +     // Maintenance over term
             amortizationCosts +               // Principal payments
             renovationExpenses +              // One-time renovations
-            additionalPurchaseExpensesOutput; // One-time purchase costs
+            additionalPurchaseExpensesOutput;  // One-time purchase costs
+        // ML-style aggregates (diagnostics)
+        const purchaseCostsWithinObservationPeriod = interestCosts + supplementalMaintenanceCosts + amortizationCosts + renovationExpenses + additionalPurchaseExpensesOutput;
         
         // Calculate property value at end of analysis period with compound appreciation
-        // This represents the asset value you'll have when selling/evaluating
+        // Equal-consumption (Moneyland-aligned): do NOT capitalize one-off renovations into property value end
         const propertyValueEnd = purchasePrice * Math.pow(1 + propertyAppreciationRate, termYears);
         
         // Calculate remaining mortgage balance at end of term
@@ -205,8 +207,10 @@ class SwissRentBuyCalculator {
         }
 
         // Future value of initial investable amount at end of term
-        const fvInitial = investableAmount * Math.pow(1 + investmentYieldRate, termYears);
-        const gainsInitial = fvInitial - investableAmount;
+        // Include day-0 capex/renovations as investable for renter ONLY in cash-flow parity mode
+        const investableIncludingRenovations = investableAmount + (scenarioMode === 'cashflowParity' ? totalRenovations : 0);
+        const fvInitial = investableIncludingRenovations * Math.pow(1 + investmentYieldRate, termYears);
+        const gainsInitial = fvInitial - investableIncludingRenovations;
 
         // Future value of annual contributions
         // - Equal-savings (amortization-equivalent): ordinary annuity closed form
@@ -242,9 +246,9 @@ class SwissRentBuyCalculator {
         // Total investment gains for renter
         const totalInvestmentGains = gainsInitial + gainsContribs;
         
-        // Total tax on renter's investment income over the term
-        const totalInvestmentIncomeTax = totalInvestmentGains * marginalTaxRate;
-        const annualInvestmentIncomeTax = totalInvestmentIncomeTax / termYears;
+        // Total tax on renter's investment income over the term (computed later from portfolio simulation)
+        let totalInvestmentIncomeTax = 0;
+        let annualInvestmentIncomeTax = 0; // For owner vs renter tax difference loop, keep 0 here; adjust after portfolio sim
         
         // Calculate year-by-year tax differences and add to yearly breakdown
         for (let year = 0; year < termYears; year++) {
@@ -278,6 +282,7 @@ class SwissRentBuyCalculator {
             yearlyBreakdown[year].annualRent = monthlyRent * 12;
             yearlyBreakdown[year].annualRentalCosts = annualRentalCosts;
             yearlyBreakdown[year].annualTaxDifference = annualNetTaxDifference;
+            // Owner running costs are merged into annualMaintenanceCosts
             // Expose tax components for auditing (owner side)
             yearlyBreakdown[year].taxImputedRent = annualTaxCostImputedRental; // +
             yearlyBreakdown[year].taxSavingsInterest = annualTaxSavingsInterest; // -
@@ -295,39 +300,27 @@ class SwissRentBuyCalculator {
         }
         
         // Total tax difference over the analysis period
-        const taxDifferenceToRental = totalTaxDifference;
+        // We'll adjust this after we simulate renter investment taxes from portfolio growth
+        let taxDifferenceToRental = totalTaxDifference;
         
         // Calculate total net cost of the purchase scenario
         // This represents the total financial impact of buying
-        const totalPurchaseCost = 
-            generalCostOfPurchase +    // All direct costs (interest, maintenance, amortization, etc.)
-            taxDifferenceToRental -    // Net tax impact (could be positive or negative)
-            propertyValueEnd +         // Subtract final property value (asset gained)
-            mortgageAtEnd;            // Add remaining mortgage debt
+        // Defer final totalPurchaseCost computation until after renter investment tax is computed
+        let totalPurchaseCost = 0;
         
         // RENTAL SCENARIO CALCULATIONS
         const generalCostOfRental = (monthlyRent * 12 * termYears) + (annualRentalCosts * termYears);
-        const yieldsOnAssets = totalInvestmentGains; // gains only (not principal)
+        const rentalCostsWithinObservationPeriod = generalCostOfRental;
+        const yieldsOnAssets = totalInvestmentGains; // gains only (gross, taxes handled via taxDifference)
         const downPaymentOutput = downPayment;
         const savingsContributionsOutput = totalSavingsContributions; // principal contributed by renter in equal-savings/cashflow-parity
-        const totalRentalCost = (scenarioMode === 'equalSavings' || scenarioMode === 'cashflowParity')
-            ? (generalCostOfRental - yieldsOnAssets - downPaymentOutput - savingsContributionsOutput)
-            : (generalCostOfRental - yieldsOnAssets - downPaymentOutput);
+        // Equal consumption (Moneyland-compatible): do NOT subtract investment yields; subtract down payment only
+        let totalRentalCost = 0; // compute after renter investment tax so we ensure consistency
         
-        // FINAL COMPARISON
-        const resultValue = totalRentalCost - totalPurchaseCost;
-        let decision, compareText;
-        
-        if (resultValue > 0) {
-            decision = "BUY";
-            compareText = `Buying your home will work out CHF ${resultValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than renting over the relevant time frame.`;
-        } else if (resultValue < 0) {
-            decision = "RENT";
-            compareText = `Renting is CHF ${Math.abs(resultValue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than buying over the relevant time frame.`;
-        } else {
-            decision = "EVEN";
-            compareText = "Buying and renting have the same cost over the relevant time frame.";
-        }
+        // Defer final comparison until after totals are computed (done later)
+        let resultValue = 0;
+        let decision = "EVEN";
+        let compareText = "Buying and renting have the same cost over the relevant time frame.";
         
         // Calculate monthly expenses for buying scenario
         const monthlyInterestPayment = Math.round((mortgageAmount * mortgageRate) / 12);
@@ -347,11 +340,13 @@ class SwissRentBuyCalculator {
         
         // Calculate cumulative costs for yearly breakdown - ensure final year matches main calculation exactly
         // Also enrich with detailed analytics for transparency (portfolio, equity, taxes, cash-flow)
-        let portfolioValueSoFar = investableAmount; // renter portfolio starts with initial capital
+        const renterInitialCapital = investableIncludingRenovations; // include renovations at t=0 only for cash-flow parity
+        let portfolioValueSoFar = renterInitialCapital; // renter portfolio starts with initial capital
         let cumulativePrincipalFromContribs = 0;    // algebraic sum of renter contributions (excl. initial)
         let cumulativeInvestmentGainsSoFar = 0;
         let cumulativeAmortizationSoFar = 0;
         let priorCumulativeAdvantage = 0;
+        let renterInvestmentTaxTotal = 0;
         for (let year = 0; year < termYears; year++) {
             const yearData = yearlyBreakdown[year];
             const yearsToDate = year + 1;
@@ -367,8 +362,9 @@ class SwissRentBuyCalculator {
             const gainsThisYear = portfolioValueSoFar * investmentYieldRate;
             cumulativeInvestmentGainsSoFar += gainsThisYear;
             cumulativePrincipalFromContribs += renterContributionThisYear;
-            const investmentIncomeTaxThisYear = gainsThisYear * marginalTaxRate;
+            const investmentIncomeTaxThisYear = gainsThisYear * marginalTaxRate; // renter pre-tax yield taxed in all modes
             portfolioValueSoFar = portfolioValueSoFar + gainsThisYear + renterContributionThisYear;
+            renterInvestmentTaxTotal += investmentIncomeTaxThisYear;
 
             // Buyer amortization accumulation
             cumulativeAmortizationSoFar += yearData.annualAmortization;
@@ -380,13 +376,7 @@ class SwissRentBuyCalculator {
             const rentAnnualCashOutlay = yearData.annualRent + yearData.annualRentalCosts + investmentIncomeTaxThisYear;
             const netMonthlyDiffThisYear = (buyAnnualCashOutlay - rentAnnualCashOutlay) / 12;
             
-            if (yearsToDate === termYears) {
-                // For the final year, use the exact same values as main calculation to ensure consistency
-                yearData.totalPurchaseCostToDate = totalPurchaseCost;
-                yearData.totalRentalCostToDate = totalRentalCost;
-                yearData.cumulativeAdvantage = resultValue;
-                yearData.advantageDeltaFromPriorYear = yearsToDate > 1 ? (yearData.cumulativeAdvantage - priorCumulativeAdvantage) : yearData.cumulativeAdvantage;
-            } else {
+            if (yearsToDate !== termYears) {
                 // For intermediate years, calculate proportionally
                 // Calculate what fraction of the total term this represents
                 const termFraction = yearsToDate / termYears;
@@ -463,6 +453,9 @@ class SwissRentBuyCalculator {
             }
 
             // Enrich row with analytics common to both branches
+            if (year === 0) {
+                yearData.renterInitialCapital = renterInitialCapital;
+            }
             yearData.renterContribution = renterContributionThisYear;
             yearData.cumulativeRenterPrincipal = cumulativePrincipalFromContribs;
             yearData.investmentGainsThisYear = gainsThisYear;
@@ -478,6 +471,43 @@ class SwissRentBuyCalculator {
             yearData.netMonthlyDiffThisYear = netMonthlyDiffThisYear;
 
             priorCumulativeAdvantage = yearData.cumulativeAdvantage;
+        }
+
+        // After simulating renter portfolio taxes across the term, adjust tax difference (owner minus renter)
+        // totalTaxDifference currently contains owner-side net taxes only. Subtract renter investment taxes.
+        totalInvestmentIncomeTax = renterInvestmentTaxTotal;
+        taxDifferenceToRental = totalTaxDifference - totalInvestmentIncomeTax;
+
+        // Now compute final totals using the adjusted tax difference
+        totalPurchaseCost = (scenarioMode === 'equalConsumption')
+            ? (purchaseCostsWithinObservationPeriod + taxDifferenceToRental - propertyValueEnd + mortgageAtEnd)
+            : (generalCostOfPurchase + taxDifferenceToRental - propertyValueEnd + mortgageAtEnd);
+
+        totalRentalCost = (scenarioMode === 'equalSavings' || scenarioMode === 'cashflowParity')
+            ? (generalCostOfRental - yieldsOnAssets - downPaymentOutput - savingsContributionsOutput)
+            : (rentalCostsWithinObservationPeriod - yieldsOnAssets - downPaymentOutput);
+
+        // FINAL COMPARISON (after totals are ready)
+        resultValue = totalRentalCost - totalPurchaseCost;
+        if (resultValue > 0) {
+            decision = "BUY";
+            compareText = `Buying your home will work out CHF ${resultValue.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than renting over the relevant time frame.`;
+        } else if (resultValue < 0) {
+            decision = "RENT";
+            compareText = `Renting is CHF ${Math.abs(resultValue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than buying over the relevant time frame.`;
+        } else {
+            decision = "EVEN";
+            compareText = "Buying and renting have the same cost over the relevant time frame.";
+        }
+
+        // Overwrite final year's cumulative fields to ensure consistency with final totals
+        if (termYears > 0) {
+            const lastIdx = termYears - 1;
+            const prevAdv = lastIdx > 0 ? (yearlyBreakdown[lastIdx - 1].cumulativeAdvantage || 0) : 0;
+            yearlyBreakdown[lastIdx].totalPurchaseCostToDate = totalPurchaseCost;
+            yearlyBreakdown[lastIdx].totalRentalCostToDate = totalRentalCost;
+            yearlyBreakdown[lastIdx].cumulativeAdvantage = resultValue;
+            yearlyBreakdown[lastIdx].advantageDeltaFromPriorYear = resultValue - prevAdv;
         }
 
         return {
@@ -531,10 +561,13 @@ class SwissRentBuyCalculator {
             
             // Rental cost breakdown
             GeneralCostOfRental: generalCostOfRental,
-            ExcludingYieldsOnAssets: -yieldsOnAssets,
+            ExcludingYieldsOnAssets: (scenarioMode === 'equalConsumption') ? 0 : -yieldsOnAssets,
             ExcludingDownPayment: -downPaymentOutput,
             ExcludingSavingsContributions: (scenarioMode === 'equalSavings' || scenarioMode === 'cashflowParity') ? -savingsContributionsOutput : 0,
             TotalRentalCost: totalRentalCost,
+            // ML aggregates (for compatibility diagnostics)
+            PurchaseCostsWithinObservationPeriod: purchaseCostsWithinObservationPeriod,
+            RentalCostsWithinObservationPeriod: rentalCostsWithinObservationPeriod,
             
             // Metadata
             MortgageAmount: Math.round(mortgageAmount),

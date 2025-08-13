@@ -65,6 +65,14 @@ class SwissRentBuyCalculatorNode {
             renovationExpenses + 
             additionalPurchaseExpensesOutput
         );
+        // ML-style aggregates (diagnostics)
+        const purchaseCostsWithinObservationPeriod = (
+            interestCosts +
+            supplementalMaintenanceCosts +
+            amortizationCosts +
+            renovationExpenses +
+            additionalPurchaseExpensesOutput
+        );
 
         // Property value at end of term with appreciation
         const propertyValueEnd = purchasePrice * Math.pow(1 + propertyAppreciationRate, termYears);
@@ -134,6 +142,7 @@ class SwissRentBuyCalculatorNode {
 
         // RENTAL SCENARIO CALCULATIONS
         const generalCostOfRental = (monthlyRent * 12 * termYears) + (annualRentalCosts * termYears);
+        const rentalCostsWithinObservationPeriod = generalCostOfRental;
         
         // Investment yields on down payment and additional costs
         const yieldsOnAssets = investableAmount * (Math.pow(1 + investmentYieldRate, termYears) - 1);
@@ -194,12 +203,14 @@ class SwissRentBuyCalculatorNode {
             MinusPropertyValue: -propertyValueEnd,
             MortgageAtEndOfRelevantTimePeriod: mortgageAtEnd,
             TotalPurchaseCost: totalPurchaseCost,
+            PurchaseCostsWithinObservationPeriod: purchaseCostsWithinObservationPeriod,
             
             // Rental cost breakdown
             GeneralCostOfRental: generalCostOfRental,
             ExcludingYieldsOnAssets: -yieldsOnAssets,
             ExcludingDownPayment: -downPayment,
             TotalRentalCost: totalRentalCost,
+            RentalCostsWithinObservationPeriod: rentalCostsWithinObservationPeriod,
             
             // Metadata
             MortgageAmount: Math.round(mortgageAmount),

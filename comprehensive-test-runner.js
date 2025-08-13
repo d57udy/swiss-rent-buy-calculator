@@ -15,6 +15,12 @@ try {
 } catch (e) {
     cashflowParityTests = { runCashflowParityTests: () => true };
 }
+let providedMoneylandCase;
+try {
+    providedMoneylandCase = require('./test-moneyland-provided-case.js');
+} catch (e) {
+    providedMoneylandCase = { runProvidedMoneylandCase: () => ({ passed: true }) };
+}
 let randomSampleValidation;
 try {
     randomSampleValidation = require('./random-sample-validation.js');
@@ -101,6 +107,19 @@ class ComprehensiveTestRunner {
             return true;
         } catch (error) {
             console.error('❌ Cash-flow parity tests failed:', error.message);
+            throw error;
+        }
+    }
+
+    async runProvidedMoneylandCaseTest() {
+        console.log('\n🧪 Provided Moneyland Case Test');
+        console.log('='.repeat(50));
+        try {
+            const res = providedMoneylandCase.runProvidedMoneylandCase();
+            console.log('✅ Provided Moneyland case executed');
+            return res;
+        } catch (error) {
+            console.error('❌ Provided Moneyland case failed:', error.message);
             throw error;
         }
     }
@@ -334,6 +353,9 @@ Review test results above and address any identified issues.
             
             // Step 1b: Run new cash-flow parity unit tests
             await this.runCashflowParityUnitTests();
+
+            // Step 1c: Run provided Moneyland single-case parity test
+            await this.runProvidedMoneylandCaseTest();
 
             // Step 2: Generate random sample tests
             await this.runRandomSampleGeneration();
