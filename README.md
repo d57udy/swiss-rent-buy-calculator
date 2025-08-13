@@ -115,13 +115,13 @@ Tips:
 
 ### 2) Explore the Max Bid Finder
 - Open the `Maximum Bid Finder` tab. It inherits all inputs (including the selected comparison mode).
-- Set the search range and tolerance; run the search to find the highest price you can pay while breaking even with renting.
+- Set the search range and tolerance; run the search to find the highest price you can pay while breaking even with renting. The finder uses an adaptive refinement step so higher tolerances finish faster.
 - Use the pivot-style results and CSV export for negotiation planning.
 
 ### 3) Run a Parameter Sweep
 - Open the `Parameter Sweep` tab. It also inherits the current comparison mode and inputs.
 - Configure ranges for property appreciation, investment yield, and mortgage rate.
-- Run the sweep to visualize `BUY` vs `RENT` across conditions and export results as CSV.
+- Run the sweep to visualize `BUY` vs `RENT` across conditions and export results as CSV. The sweep reuses the same adaptive break‑even finder as the Max Bid tab for consistent accuracy and speed.
 
 ### 4) Save / Load Scenarios
 - Use the `💾 Save Parameters` button to download a JSON file containing all inputs, including `scenarioMode`.

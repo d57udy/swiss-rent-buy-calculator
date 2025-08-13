@@ -1,0 +1,142 @@
+# Page snapshot
+
+```yaml
+- heading "Swiss Rent vs Buy Calculator" [level=1]
+- button "📁 Load Parameters"
+- button "💾 Save Parameters"
+- button "Single Calculation"
+- button "Max Bid Finder"
+- button "Parameter Sweep"
+- button "About"
+- paragraph: Analyze how changing market conditions affect the rent vs buy decision. This tool runs multiple scenarios across different property appreciation rates, investment yields, and mortgage rates, displaying results in an interactive color-coded table.
+- heading "Parameter Sweep Configuration" [level=3]
+- heading "Property Appreciation (%/year)" [level=4]
+- spinbutton: "0"
+- spinbutton: "2"
+- spinbutton: "1"
+- heading "Investment Yield (%/year)" [level=4]
+- spinbutton: "2"
+- spinbutton: "4"
+- spinbutton: "1"
+- heading "Mortgage Rate (%)" [level=4]
+- spinbutton: "1"
+- spinbutton: "3"
+- spinbutton: "1"
+- button "Run Parameter Sweep"
+- heading "Parameter Sweep Analysis (27 combinations)" [level=4]
+- heading "Summary Statistics" [level=5]
+- strong: "Current Purchase Price:"
+- text: 2M
+- strong: "Average Max Bid:"
+- text: 6.02M
+- strong: "Highest Max Bid:"
+- text: 10M
+- strong: "Lowest Max Bid:"
+- text: 2.68M
+- strong: "Valid Results:"
+- text: 27/27
+- strong: "Buy Recommended:"
+- text: 27 scenarios (100%)
+- strong: "Rent Recommended:"
+- text: 0 scenarios (0%)
+- heading "Maximum Bid Price Analysis" [level=5]
+- strong: "How to read this table:"
+- text: • Rows represent combinations of
+- strong: Mortgage Rate
+- text: and
+- strong: Investment Yield
+- text: • Columns represent different
+- strong: Property Appreciation
+- text: rates • Values show the maximum price you should bid to break even with renting •
+- strong: "Color scale:"
+- text: Red = below current purchase price (2M), Yellow = moderate, Green = highest opportunities
+- button "Download Max Bid Price CSV"
+- table:
+  - rowgroup:
+    - row "Mortgage Rate (%) Investment Yield (%) Property Appreciation (%/year)":
+      - cell "Mortgage Rate (%)"
+      - cell "Investment Yield (%)"
+      - cell "Property Appreciation (%/year)"
+    - row "0.0% 1.0% 2.0%":
+      - cell "0.0%"
+      - cell "1.0%"
+      - cell "2.0%"
+  - rowgroup:
+    - row "1.0 2.0 4.09M 9.34M 5.75M":
+      - cell "1.0"
+      - cell "2.0"
+      - cell "4.09M"
+      - cell "9.34M"
+      - cell "5.75M"
+    - row "3.0 3.76M 7.68M 5.75M":
+      - cell "3.0"
+      - cell "3.76M"
+      - cell "7.68M"
+      - cell "5.75M"
+    - row "4.0 3.43M 6.45M >10M":
+      - cell "4.0"
+      - cell "3.43M"
+      - cell "6.45M"
+      - cell ">10M"
+    - row:
+      - cell
+    - row "2.0 2.0 3.53M 6.78M 5.75M":
+      - cell "2.0"
+      - cell "2.0"
+      - cell "3.53M"
+      - cell "6.78M"
+      - cell "5.75M"
+    - row "3.0 3.26M 5.88M >10M":
+      - cell "3.0"
+      - cell "3.26M"
+      - cell "5.88M"
+      - cell ">10M"
+    - row "4.0 3.01M 5.12M >10M":
+      - cell "4.0"
+      - cell "3.01M"
+      - cell "5.12M"
+      - cell ">10M"
+    - row:
+      - cell
+    - row "3.0 2.0 3.08M 5.32M >10M":
+      - cell "3.0"
+      - cell "2.0"
+      - cell "3.08M"
+      - cell "5.32M"
+      - cell ">10M"
+    - row "3.0 2.88M 4.75M >10M":
+      - cell "3.0"
+      - cell "2.88M"
+      - cell "4.75M"
+      - cell ">10M"
+    - row "4.0 2.68M 4.26M >10M":
+      - cell "4.0"
+      - cell "2.68M"
+      - cell "4.26M"
+      - cell ">10M"
+- heading "Monthly Cost Analysis" [level=5]
+- strong: "About this table:"
+- text: • Shows total monthly expenses when buying at the current purchase price (2M) • Includes mortgage interest, amortization, and maintenance costs • Monthly costs only depend on mortgage rate (independent of property appreciation and investment yield) •
+- strong: "Color scale based on comparison to monthly rent (CHF 5,500):"
+- text: Green = below rent, Yellow = close to rent, Red = above rent
+- button "Download Monthly Cost CSV"
+- table:
+  - rowgroup:
+    - row "Mortgage Rate (%) Monthly Expenses vs. Monthly Rent":
+      - cell "Mortgage Rate (%)"
+      - cell "Monthly Expenses"
+      - cell "vs. Monthly Rent"
+  - rowgroup:
+    - row "1.0% CHF 16,749 +CHF 11,249":
+      - cell "1.0%"
+      - cell "CHF 16,749"
+      - cell "+CHF 11,249"
+    - row "2.0% CHF 18,083 +CHF 12,583":
+      - cell "2.0%"
+      - cell "CHF 18,083"
+      - cell "+CHF 12,583"
+    - row "3.0% CHF 19,416 +CHF 13,916":
+      - cell "3.0%"
+      - cell "CHF 19,416"
+      - cell "+CHF 13,916"
+```

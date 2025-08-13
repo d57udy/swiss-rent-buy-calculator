@@ -1438,7 +1438,7 @@
             }).join('');
 
             const yearByYear = `
-                <div style="display:flex; justify-content: flex-start; align-items:center; gap:12px; margin-bottom: 8px;">
+                <div class="yby-controls" style="display:flex; justify-content: flex-start; align-items:center; gap:12px; margin-bottom: 8px;">
                         <label style="font-size:12px; color:#1d1d1f; display:flex; align-items:center; gap:6px;">
                             <input type="checkbox" id="${showAdvancedId}" ${showAdvanced ? 'checked' : ''}>
                             <span>Show advanced columns</span>
@@ -1446,8 +1446,7 @@
                         ${exactBreakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to break-even (Year ${exactBreakEvenYear})</button>` : (breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to closest (Year ${breakEvenYear})</button>` : '')}
                         <button id="downloadYearlyCsvBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Download Year-by-Year CSV</button>
                     </div>
-                </div>
-                <div style="overflow-x: auto; margin-bottom: 12px;">
+                <div class="yby-tablewrap" style="overflow-x: auto; margin-bottom: 12px;">
                     <table style="width: 100%; border-collapse: collapse; font-size: 14px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                         <thead>
                             <tr style="background: #f8f9fa; border-bottom: 2px solid #dee2e6;">
@@ -1526,7 +1525,7 @@
             resultsDiv.innerHTML = content;
             resultsDiv.style.display = 'block';
 
-            // Collapsible behavior: collapse Year-by-Year by default
+            // Collapsible behavior
             const yyyBody = document.getElementById('section-yyy');
             if (yyyBody) yyyBody.style.display = 'block';
 
@@ -1535,7 +1534,10 @@
                 h.addEventListener('click', () => {
                     const targetId = h.getAttribute('data-target');
                     const body = document.getElementById(targetId);
-                    if (body) body.style.display = (body.style.display === 'none') ? 'block' : 'none';
+                    if (!body) return;
+                    const isHidden = body.style.display === 'none';
+                    // Toggle the entire body; all child content (controls, table, help) follows
+                    body.style.display = isHidden ? 'block' : 'none';
                 });
             });
 
@@ -2622,17 +2624,18 @@
             let version = '2.1.0'; // Fallback version
             
             try {
-                // Attempt to fetch calculator.js and extract version from header
-                const response = await fetch('calculator.js');
-                const content = await response.text();
-                
-                // Look for @version tag in the header comment
-                const versionMatch = content.match(/@version\s+(\d+\.\d+\.\d+)/);
-                if (versionMatch) {
-                    version = versionMatch[1];
+                const isHttp = typeof window !== 'undefined' && (location.protocol === 'http:' || location.protocol === 'https:');
+                if (isHttp) {
+                    // Attempt to fetch calculator.js and extract version from header (only on HTTP(S))
+                    const response = await fetch('calculator.js', { cache: 'no-store' });
+                    const content = response.ok ? await response.text() : '';
+                    const versionMatch = content.match(/@version\s+(\d+\.\d+\.\d+)/);
+                    if (versionMatch) {
+                        version = versionMatch[1];
+                    }
                 }
             } catch (error) {
-                console.log('Could not extract version from calculator.js, using fallback:', version);
+                // Silently fall back when fetch is not possible (e.g., file://)
             }
             
             // Set version in About tab and footer

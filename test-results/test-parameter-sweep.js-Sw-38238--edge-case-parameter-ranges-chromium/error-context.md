@@ -1,0 +1,84 @@
+# Page snapshot
+
+```yaml
+- heading "Swiss Rent vs Buy Calculator" [level=1]
+- button "📁 Load Parameters"
+- button "💾 Save Parameters"
+- button "Single Calculation"
+- button "Max Bid Finder"
+- button "Parameter Sweep"
+- button "About"
+- paragraph: Analyze how changing market conditions affect the rent vs buy decision. This tool runs multiple scenarios across different property appreciation rates, investment yields, and mortgage rates, displaying results in an interactive color-coded table.
+- heading "Parameter Sweep Configuration" [level=3]
+- heading "Property Appreciation (%/year)" [level=4]
+- spinbutton: "1"
+- spinbutton: "1"
+- spinbutton: "1"
+- heading "Investment Yield (%/year)" [level=4]
+- spinbutton: "3"
+- spinbutton: "3"
+- spinbutton: "1"
+- heading "Mortgage Rate (%)" [level=4]
+- spinbutton: "2"
+- spinbutton: "2"
+- spinbutton: "1"
+- button "Run Parameter Sweep"
+- heading "Parameter Sweep Analysis (1 combinations)" [level=4]
+- heading "Summary Statistics" [level=5]
+- strong: "Current Purchase Price:"
+- text: 2M
+- strong: "Average Max Bid:"
+- text: 5.88M
+- strong: "Highest Max Bid:"
+- text: 5.88M
+- strong: "Lowest Max Bid:"
+- text: 5.88M
+- strong: "Valid Results:"
+- text: 1/1
+- strong: "Buy Recommended:"
+- text: 1 scenarios (100%)
+- strong: "Rent Recommended:"
+- text: 0 scenarios (0%)
+- heading "Maximum Bid Price Analysis" [level=5]
+- strong: "How to read this table:"
+- text: • Rows represent combinations of
+- strong: Mortgage Rate
+- text: and
+- strong: Investment Yield
+- text: • Columns represent different
+- strong: Property Appreciation
+- text: rates • Values show the maximum price you should bid to break even with renting •
+- strong: "Color scale:"
+- text: Red = below current purchase price (2M), Yellow = moderate, Green = highest opportunities
+- button "Download Max Bid Price CSV"
+- table:
+  - rowgroup:
+    - row "Mortgage Rate (%) Investment Yield (%) Property Appreciation (%/year)":
+      - cell "Mortgage Rate (%)"
+      - cell "Investment Yield (%)"
+      - cell "Property Appreciation (%/year)"
+    - row "1.0%":
+      - cell "1.0%"
+  - rowgroup:
+    - row "2.0 3.0 5.88M":
+      - cell "2.0"
+      - cell "3.0"
+      - cell "5.88M"
+- heading "Monthly Cost Analysis" [level=5]
+- strong: "About this table:"
+- text: • Shows total monthly expenses when buying at the current purchase price (2M) • Includes mortgage interest, amortization, and maintenance costs • Monthly costs only depend on mortgage rate (independent of property appreciation and investment yield) •
+- strong: "Color scale based on comparison to monthly rent (CHF 5,500):"
+- text: Green = below rent, Yellow = close to rent, Red = above rent
+- button "Download Monthly Cost CSV"
+- table:
+  - rowgroup:
+    - row "Mortgage Rate (%) Monthly Expenses vs. Monthly Rent":
+      - cell "Mortgage Rate (%)"
+      - cell "Monthly Expenses"
+      - cell "vs. Monthly Rent"
+  - rowgroup:
+    - row "2.0% CHF 18,083 +CHF 12,583":
+      - cell "2.0%"
+      - cell "CHF 18,083"
+      - cell "+CHF 12,583"
+```
