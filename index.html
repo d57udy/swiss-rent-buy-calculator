@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net">
     <title>Swiss Rent vs Buy Calculator</title>
     <style>
         body {
@@ -861,6 +861,110 @@
                     </div>
                     <div id="section-rent" class="collapsible-body" style="padding:8px; display:block;"></div>
                 </div>
+                
+                <!-- Interactive Chart Section -->
+                <div class="collapsible chart-section" style="margin-bottom: 8px;">
+                    <div class="collapsible-header" data-target="section-chart" style="padding: 8px 10px; background:#f8f9fa; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="font-weight:600; color:#1d1d1f;">📈 Interactive Chart</div>
+                        <div style="color:#6c757d; font-size:12px;">Click to expand/collapse</div>
+                    </div>
+                    <div id="section-chart" class="collapsible-body" style="padding:12px; display:block;">
+                        <!-- Chart controls -->
+                        <div class="chart-controls" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:12px; padding:8px; background:#f8f9fa; border-radius:4px;">
+                            <div class="line-toggles" style="display:flex; flex-wrap:wrap; gap:8px; max-width:calc(100% - 200px);">
+                                <!-- Core Financial Lines -->
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumBuyCost" checked data-line="cumBuyCost">
+                                    <span style="color:#dc3545;">● Cumulative Buy Cost</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumRentCost" checked data-line="cumRentCost">
+                                    <span style="color:#0d6efd;">● Cumulative Rent Cost</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-advantage" data-line="advantage">
+                                    <span style="color:#198754;">● Advantage</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-propertyValue" data-line="propertyValue">
+                                    <span style="color:#6f42c1;">● Property Value</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-portfolioEnd" data-line="portfolioEnd">
+                                    <span style="color:#fd7e14;">● Investment Portfolio</span>
+                                </label>
+                                
+                                <!-- Annual Flow Lines -->
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualRent" data-line="annualRent">
+                                    <span style="color:#17a2b8;">● Annual Rent</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-interest" data-line="interest">
+                                    <span style="color:#e83e8c;">● Annual Interest</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualAmortization" data-line="annualAmortization">
+                                    <span style="color:#6610f2;">● Annual Amortization</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualMaintenance" data-line="annualMaintenance">
+                                    <span style="color:#d63384;">● Annual Maintenance</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualRentalCosts" data-line="annualRentalCosts">
+                                    <span style="color:#fd7e14;">● Annual Rental Costs</span>
+                                </label>
+                                
+                                <!-- Balance and Equity Lines -->
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-mortgageBalance" data-line="mortgageBalance">
+                                    <span style="color:#20c997;">● Mortgage Balance</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-homeownerEquity" data-line="homeownerEquity">
+                                    <span style="color:#20c997;">● Homeowner Equity</span>
+                                </label>
+                                
+                                <!-- Tax and Investment Lines -->
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualTaxDifference" data-line="annualTaxDifference">
+                                    <span style="color:#198754;">● Annual Tax Difference</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-investmentGainsThisYear" data-line="investmentGainsThisYear">
+                                    <span style="color:#ffc107;">● Investment Gains This Year</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumulativeInvestmentGains" data-line="cumulativeInvestmentGains">
+                                    <span style="color:#fd7e14;">● Cumulative Investment Gains</span>
+                                </label>
+                                
+                                <!-- Cash Flow Lines -->
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-buyAnnualCashOutlay" data-line="buyAnnualCashOutlay">
+                                    <span style="color:#dc3545;">● Buy Annual Cash Outlay</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-rentAnnualCashOutlay" data-line="rentAnnualCashOutlay">
+                                    <span style="color:#0d6efd;">● Rent Annual Cash Outlay</span>
+                                </label>
+                            </div>
+                            <div class="chart-actions" style="display:flex; gap:8px; margin-left:auto;">
+                                <button id="resetZoom" class="button secondary" style="padding:4px 8px; font-size:12px;">Reset Zoom</button>
+                                <button id="exportChart" class="button secondary" style="padding:4px 8px; font-size:12px;">Export PNG</button>
+                            </div>
+                        </div>
+                        <!-- Chart canvas -->
+                        <div class="chart-container" style="position:relative; height:400px; width:100%;">
+                            <canvas id="financialChart"></canvas>
+                        </div>
+                        <div style="margin-top:8px; font-size:11px; color:#6c757d; text-align:center;">
+                            Drag to pan • Scroll/pinch to zoom • Click legend to toggle lines
+                        </div>
+                    </div>
+                </div>
+                
                 <div class="collapsible" style="margin-bottom: 8px;">
                     <div class="collapsible-header" data-target="section-yyy" style="padding: 8px 10px; background:#f8f9fa; display:flex; align-items:center; justify-content:space-between;">
                         <div style="font-weight:600; color:#1d1d1f;">Year-by-Year Analysis</div>
@@ -1338,6 +1442,12 @@
                 : SwissRentBuyCalculator;
             const result = calcEngine.calculate(params);
             displaySingleResult(result);
+            
+            // Update chart with new calculation results
+            if (window.SwissChartManager && result) {
+                SwissChartManager.updateFromCalculation(result);
+            }
+            
             clearStale();
         }
 
@@ -1671,7 +1781,7 @@
             const secYyy = document.getElementById('section-yyy');
             if (secYyy) secYyy.innerHTML = yearByYear;
 
-            // Ensure sections visible initially
+            // Ensure sections visible initially (chart starts collapsed)
             ['section-monthly', 'section-purchase', 'section-rent', 'section-yyy'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.style.display = 'block';
@@ -2653,6 +2763,14 @@
                     mortRateMin: parseFloat(document.getElementById('mortRateMin').value) || 1,
                     mortRateMax: parseFloat(document.getElementById('mortRateMax').value) || 5,
                     mortRateStep: parseFloat(document.getElementById('mortRateStep').value) || 1
+                },
+                
+                // Chart Settings
+                chart: window.SwissChartManager ? SwissChartManager.getSettings() : {
+                    activeLines: ['cumBuyCost', 'cumRentCost'],
+                    zoomLevel: { min: null, max: null },
+                    panPosition: { x: 0, y: 0 },
+                    isExpanded: false
                 }
             };
             
@@ -2773,6 +2891,11 @@
                     if (sw.mortRateStep !== undefined) document.getElementById('mortRateStep').value = sw.mortRateStep;
                 }
                 
+                // Load Chart Settings
+                if (params.chart && window.SwissChartManager) {
+                    SwissChartManager.loadSettings(params.chart);
+                }
+                
                 // Trigger recalculation of auto-calculated fields
                 updateCalculatedFields();
                 
@@ -2855,5 +2978,12 @@
         setVersionNumbers();
         performCalculation();
     </script>
+    
+    <!-- Chart.js Dependencies (Local) -->
+    <script src="libs-chart.js"></script>
+    <script src="libs-chart-zoom.js"></script>
+    
+    <!-- Chart Manager -->
+    <script src="chart-manager.js"></script>
 </body>
 </html>
