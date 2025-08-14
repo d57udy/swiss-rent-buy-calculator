@@ -1376,17 +1376,38 @@
                 inputs,
                 outputs
             };
-            const defaultName = `scenario_${new Date().toISOString().split('T')[0]}.json`;
-            const name = prompt('Enter filename for the scenario JSON:', defaultName) || defaultName;
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+            const suggestedName = `scenario-${timestamp}.json`;
             const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            try {
+                if (window.showSaveFilePicker) {
+                    const handle = await window.showSaveFilePicker({
+                        suggestedName,
+                        types: [
+                            {
+                                description: 'JSON Files',
+                                accept: { 'application/json': ['.json'] }
+                            }
+                        ]
+                    });
+                    const writable = await handle.createWritable();
+                    await writable.write(blob);
+                    await writable.close();
+                } else {
+                    // Fallback for browsers without File System Access API: prompt for a name and trigger a download
+                    const name = prompt('Enter filename for the scenario JSON:', suggestedName) || suggestedName;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = name;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }
+            } catch (e) {
+                console.error('Scenario save was cancelled or failed:', e);
+            }
         });
 
         function displaySingleResult(result) {
