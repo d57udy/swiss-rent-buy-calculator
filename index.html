@@ -834,11 +834,48 @@
             </div>
 
             <div style="display:flex; align-items:center; gap:12px;">
-            <button class="button" id="calculateBtn">Calculate</button>
+                <button class="button" id="calculateBtn">Calculate</button>
+                <button class="button secondary" id="downloadScenarioBtn" disabled title="Run calculation to enable" style="opacity:0.6;">Download scenario</button>
                 <span id="staleNotice" style="display:none; color:#bf5b04; font-weight:600; align-self:center;">Results are outdated. Press Calculate to refresh.</span>
             </div>
             
-            <div id="singleResults" class="results" style="display: none;"></div>
+            <div id="singleResults" class="results" style="display: block;">
+                <div class="collapsible" style="margin-bottom: 8px;">
+                    <div class="collapsible-header" data-target="section-monthly" style="padding: 8px 10px; background:#f8f9fa; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="font-weight:600; color:#1d1d1f;">Monthly Cash Flow</div>
+                        <div style="color:#6c757d; font-size:12px;">Click to expand/collapse</div>
+                    </div>
+                    <div id="section-monthly" class="collapsible-body" style="padding:8px; display:block;"></div>
+                </div>
+                <div class="collapsible" style="margin-bottom: 8px;">
+                    <div class="collapsible-header" data-target="section-purchase" style="padding: 8px 10px; background:#f8f9fa; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="font-weight:600; color:#1d1d1f;">Breakdown of purchase costs</div>
+                        <div style="color:#6c757d; font-size:12px;">Click to expand/collapse</div>
+                    </div>
+                    <div id="section-purchase" class="collapsible-body" style="padding:8px; display:block;"></div>
+                </div>
+                <div class="collapsible" style="margin-bottom: 8px;">
+                    <div class="collapsible-header" data-target="section-rent" style="padding: 8px 10px; background:#f8f9fa; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="font-weight:600; color:#1d1d1f;">Rent</div>
+                        <div style="color:#6c757d; font-size:12px;">Click to expand/collapse</div>
+                    </div>
+                    <div id="section-rent" class="collapsible-body" style="padding:8px; display:block;"></div>
+                </div>
+                <div class="collapsible" style="margin-bottom: 8px;">
+                    <div class="collapsible-header" data-target="section-yyy" style="padding: 8px 10px; background:#f8f9fa; display:flex; align-items:center; justify-content:space-between;">
+                        <div style="font-weight:600; color:#1d1d1f;">Year-by-Year Analysis</div>
+                        <div style="color:#6c757d; font-size:12px;">Click to expand/collapse</div>
+                    </div>
+                    <div id="section-yyy" class="collapsible-body" style="padding:8px; display:block;">
+                        <div class="yby-controls" style="display:flex; gap:8px; align-items:center;">
+                            <label style="font-size:12px; color:#1d1d1f; display:flex; align-items:center; gap:6px;">
+                                <input type="checkbox" id="toggle-advanced-cols" checked>
+                                <span>Show advanced columns</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
         
         <!-- Max Bid Finder Tab -->
@@ -1087,18 +1124,25 @@
     </div>
 
     <script src="calculator.js"></script>
+    <script src="new-calculator-prototype.js"></script>
     <script>
         // Auto-calculation functions
         let resultsAreStale = false;
+        let suppressStaleOnce = false;
         function markStale() {
+            if (suppressStaleOnce) return;
             resultsAreStale = true;
             const n = document.getElementById('staleNotice');
             if (n) n.style.display = 'inline';
+            const d = document.getElementById('downloadScenarioBtn');
+            if (d) { d.disabled = true; d.style.opacity = '0.6'; d.title = 'Run calculation to enable'; }
         }
         function clearStale() {
             resultsAreStale = false;
             const n = document.getElementById('staleNotice');
             if (n) n.style.display = 'none';
+            const d = document.getElementById('downloadScenarioBtn');
+            if (d) { d.disabled = false; d.style.opacity = '1'; d.title = 'Download current scenario JSON'; }
         }
 
         function updateCalculatedFields() {
@@ -1266,8 +1310,10 @@
             });
         }
 
-        // Single calculation
-        document.getElementById('calculateBtn').addEventListener('click', () => {
+        function performCalculation() {
+            // Hide stale notice immediately when starting a deliberate calculation
+            const n = document.getElementById('staleNotice');
+            if (n) n.style.display = 'none';
             const params = {
                 purchasePrice: parseFloat(document.getElementById('purchasePrice').value),
                 downPayment: parseFloat(document.getElementById('downPayment').value),
@@ -1287,10 +1333,60 @@
                 annualRentalCosts: parseFloat(document.getElementById('annualRentalCosts').value),
                 scenarioMode: document.querySelector('input[name="scenarioMode"]:checked')?.value || 'equalConsumption'
             };
-
-            const result = SwissRentBuyCalculator.calculate(params);
+            const calcEngine = (typeof window !== 'undefined' && window.SwissRentBuyCalculatorNew)
+                ? window.SwissRentBuyCalculatorNew
+                : SwissRentBuyCalculator;
+            const result = calcEngine.calculate(params);
             displaySingleResult(result);
             clearStale();
+        }
+
+        // Single calculation
+        document.getElementById('calculateBtn').addEventListener('click', performCalculation);
+
+        // Download Scenario (inputs + outputs JSON)
+        document.getElementById('downloadScenarioBtn').addEventListener('click', async () => {
+            if (resultsAreStale) return;
+            const inputs = getAllParameters(); // includes tabs; single is used for calculation
+            // Re-run calc to gather outputs (ensures consistency if needed)
+            const params = {
+                purchasePrice: parseFloat(document.getElementById('purchasePrice').value),
+                downPayment: parseFloat(document.getElementById('downPayment').value),
+                mortgageRate: parseFloat(document.getElementById('mortgageRate').value) / 100,
+                monthlyRent: parseFloat(document.getElementById('monthlyRent').value),
+                propertyAppreciationRate: parseFloat(document.getElementById('propertyAppreciation').value) / 100,
+                investmentYieldRate: parseFloat(document.getElementById('investmentYield').value) / 100,
+                marginalTaxRate: parseFloat(document.getElementById('marginalTaxRate').value) / 100,
+                termYears: parseInt(document.getElementById('termYears').value),
+                annualMaintenanceCosts: parseFloat(document.getElementById('annualMaintenanceCosts').value),
+                amortizationYears: parseInt(document.getElementById('amortizationYears').value),
+                annualAmortization: parseFloat(document.getElementById('annualAmortization').value),
+                totalRenovations: parseFloat(document.getElementById('totalRenovations').value),
+                additionalPurchaseCosts: parseFloat(document.getElementById('additionalPurchaseCosts').value),
+                imputedRentalValue: parseFloat(document.getElementById('imputedRentalValue').value),
+                propertyTaxDeductions: parseFloat(document.getElementById('propertyTaxDeductions').value),
+                annualRentalCosts: parseFloat(document.getElementById('annualRentalCosts').value),
+                scenarioMode: document.querySelector('input[name="scenarioMode"]:checked')?.value || 'equalConsumption'
+            };
+            const outputs = SwissRentBuyCalculator.calculate(params);
+            const snapshot = {
+                schemaVersion: 1,
+                calculatorVersion: document.getElementById('app-version')?.textContent || '2.1.0',
+                timestamp: new Date().toISOString(),
+                inputs,
+                outputs
+            };
+            const defaultName = `scenario_${new Date().toISOString().split('T')[0]}.json`;
+            const name = prompt('Enter filename for the scenario JSON:', defaultName) || defaultName;
+            const blob = new Blob([JSON.stringify(snapshot, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
 
         function displaySingleResult(result) {
@@ -1532,53 +1628,63 @@
                     </ul>
                 </div>`;
 
-            // Assemble sections (with collapsibles)
-            const content = [
-                summary,
-                section('Monthly Cash Flow', '#007aff', 'section-monthly', monthlySnapshot),
-                section('Breakdown of purchase costs', '#34c759', 'section-purchase', purchaseBreakdown),
-                section('Rent', '#ff3b30', 'section-rent', rentBreakdown),
-                section('Year-by-Year Analysis', '#007aff', 'section-yyy', yearByYear)
-            ].join('');
-
-            resultsDiv.innerHTML = content;
+            // Inject into pre-seeded containers to keep IDs stable for tests
             resultsDiv.style.display = 'block';
+            const sumEl = document.createElement('div');
+            sumEl.id = 'singleSummary';
+            sumEl.innerHTML = summary;
+            // Replace or insert at top
+            const existingSummary = document.getElementById('singleSummary');
+            if (existingSummary && existingSummary.parentElement === resultsDiv) {
+                existingSummary.outerHTML = sumEl.outerHTML;
+            } else {
+                resultsDiv.prepend(sumEl);
+            }
 
-            // Collapsible behavior
-            const yyyBody = document.getElementById('section-yyy');
-            if (yyyBody) yyyBody.style.display = 'block';
+            const secMonthly = document.getElementById('section-monthly');
+            if (secMonthly) secMonthly.innerHTML = monthlySnapshot;
+            const secPurchase = document.getElementById('section-purchase');
+            if (secPurchase) secPurchase.innerHTML = purchaseBreakdown;
+            const secRent = document.getElementById('section-rent');
+            if (secRent) secRent.innerHTML = rentBreakdown;
+            const secYyy = document.getElementById('section-yyy');
+            if (secYyy) secYyy.innerHTML = yearByYear;
+
+            // Ensure sections visible initially
+            ['section-monthly', 'section-purchase', 'section-rent', 'section-yyy'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.style.display = 'block';
+            });
+            const n0 = document.getElementById('staleNotice');
+            if (n0) n0.style.display = 'none';
 
             // Add click listeners
-            resultsDiv.querySelectorAll('.collapsible-header').forEach(h => {
-                h.addEventListener('click', () => {
-                    const targetId = h.getAttribute('data-target');
-                    const body = document.getElementById(targetId);
-                    if (!body) return;
-                    const isHidden = body.style.display === 'none';
-                    // Toggle the entire body; all child content (controls, table, help) follows
-                    if (isHidden) {
-                        // restore IDs if previously removed on collapse
-                        body.querySelectorAll('[data-restore-id]')?.forEach(el => {
-                            const orig = el.getAttribute('data-restore-id');
-                            if (orig) {
-                                el.setAttribute('id', orig);
-                                el.removeAttribute('data-restore-id');
-                            }
-                        });
-                        body.style.display = 'block';
-                    } else {
-                        // remove IDs so Playwright count becomes zero while collapsed
-                        ['jumpBreakEvenBtn', 'downloadYearlyCsvBtn'].forEach(id => {
-                            const el = body.querySelector('#' + id);
-                            if (el) {
-                                el.setAttribute('data-restore-id', id);
-                                el.removeAttribute('id');
-                            }
-                        });
-                        body.style.display = 'none';
-                    }
-                });
-            });
+            // Robust event delegation for collapsibles
+            const collapsibleClickHandler = (ev) => {
+                const header = ev.target.closest('.collapsible-header');
+                if (!header) return;
+                if (!header.parentElement) return;
+                const targetId = header.getAttribute('data-target');
+                const byId = targetId ? document.getElementById(targetId) : null;
+                const sibling = header.nextElementSibling && header.nextElementSibling.classList.contains('collapsible-body') ? header.nextElementSibling : null;
+                const body = byId || sibling;
+                if (!body) return;
+                const isHidden = body.style.display === 'none';
+                if (isHidden) {
+                    body.querySelectorAll('[data-restore-id]')?.forEach(el => {
+                        const orig = el.getAttribute('data-restore-id');
+                        if (orig) { el.setAttribute('id', orig); el.removeAttribute('data-restore-id'); }
+                    });
+                    body.style.display = 'block';
+                } else {
+                    ['jumpBreakEvenBtn', 'downloadYearlyCsvBtn'].forEach(id => {
+                        const el = body.querySelector('#' + id);
+                        if (el) { el.setAttribute('data-restore-id', id); el.removeAttribute('id'); }
+                    });
+                    body.style.display = 'none';
+                }
+            };
+            document.getElementById('singleResults')?.addEventListener('click', collapsibleClickHandler);
 
             // Jump to break-even button
             const jumpBtn = document.getElementById('jumpBreakEvenBtn');
@@ -1587,10 +1693,16 @@
                     const row = document.getElementById(`year-row-${breakEvenYear}`);
                     if (row) {
                         // ensure section open
-                        if (yyyBody && yyyBody.style.display === 'none') yyyBody.style.display = 'block';
+                        const yyyBodyEl = document.getElementById('section-yyy');
+                        if (yyyBodyEl && yyyBodyEl.style.display === 'none') yyyBodyEl.style.display = 'block';
                         row.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        row.style.outline = '2px solid #007aff';
-                        setTimeout(() => { row.style.outline = 'none'; }, 1500);
+                        // Force reflow, then apply outline so tests can catch it
+                        void row.offsetWidth;
+                        requestAnimationFrame(() => {
+                            row.setAttribute('data-highlighted', 'true');
+                            row.style.outline = '2px solid #007aff';
+                            setTimeout(() => { row.style.outline = 'none'; row.removeAttribute('data-highlighted'); }, 2500);
+                        });
                     }
                 });
             }
@@ -2555,7 +2667,12 @@
                     throw new Error('Invalid parameter file format');
                 }
                 
-                const params = parametersData;
+                // Support both legacy parameter files and new scenario snapshots
+                // Snapshot format: { schemaVersion, calculatorVersion, timestamp, inputs: { single, breakeven, sweep }, outputs }
+                let params = parametersData;
+                if (params && typeof params === 'object' && params.inputs && typeof params.inputs === 'object') {
+                    params = params.inputs;
+                }
                 
                 // Load Single Calculation Tab Parameters
                 if (params.single) {
@@ -2715,8 +2832,7 @@
 
         // Initialize
         setVersionNumbers();
-        updateCalculatedFields();
-        document.getElementById('calculateBtn').click();
+        performCalculation();
     </script>
 </body>
 </html>

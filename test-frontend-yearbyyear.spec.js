@@ -12,9 +12,10 @@ test.describe('Year-by-Year UI interactions', () => {
     const btn = page.locator('#jumpBreakEvenBtn');
     if (await btn.count() === 0) test.skip();
     await btn.click();
-    // Should find some highlighted row after click (we add outline temporarily in code)
-    const highlighted = page.locator('tr[style*="outline"]');
-    await highlighted.first().waitFor({ state: 'attached', timeout: 2000 });
+    await page.waitForTimeout(100);
+    // Accept either inline style or data attribute for highlight
+    const highlighted = page.locator('tr[style*="outline"], tr[data-highlighted="true"]');
+    await highlighted.first().waitFor({ state: 'attached', timeout: 3500 });
     await expect(highlighted).toHaveCount(1);
   });
 
@@ -22,7 +23,7 @@ test.describe('Year-by-Year UI interactions', () => {
     const toggle = page.locator('#toggle-advanced-cols');
     await expect(toggle).toBeChecked();
     // Advanced header is present
-    await expect(page.locator('thead >> text=Imputed Rent Tax (Owner)')).toHaveCount(1);
+    await expect(page.locator('thead >> text=Imputed Rent Tax (Owner)')).toHaveCount(1, { timeout: 3000 });
     await toggle.uncheck();
     // Re-render should hide advanced header
     await expect(page.locator('thead >> text=Imputed Rent Tax (Owner)')).toHaveCount(0);

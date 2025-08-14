@@ -270,11 +270,11 @@ class SwissRentBuyCalculator {
             
             // Net annual tax difference: buying vs renting
             // Positive value means buying costs more in taxes
+            // Owner-side net tax only (renter investment tax handled separately via portfolio)
             const annualNetTaxDifference = 
                 annualTaxCostImputedRental -      // Tax cost of imputed rental value
                 annualTaxSavingsInterest -        // Tax savings from mortgage interest
-                annualTaxSavingsPropertyExpenses - // Tax savings from property expenses
-                annualInvestmentIncomeTax;        // Tax cost of investment income (rental scenario)
+                annualTaxSavingsPropertyExpenses; // Tax savings from property expenses
             
             totalTaxDifference += annualNetTaxDifference;
             
@@ -402,8 +402,9 @@ class SwissRentBuyCalculator {
                 const cumulativeRentalCosts = yearsToDate * (monthlyRent * 12 + annualRentalCosts);
                 
                 // Calculate investment returns for renter scenario up to this year (mode-aware)
-                const fvInitialToDate = investableAmount * Math.pow(1 + investmentYieldRate, yearsToDate);
-                const gainsInitialToDate = fvInitialToDate - investableAmount;
+                const initialInvestableForSeries = investableAmount + (scenarioMode === 'cashflowParity' ? totalRenovations : 0);
+                const fvInitialToDate = initialInvestableForSeries * Math.pow(1 + investmentYieldRate, yearsToDate);
+                const gainsInitialToDate = fvInitialToDate - initialInvestableForSeries;
 
                 const contribYearsToDate = scenarioMode === 'equalSavings' ? Math.min(contributionYears, yearsToDate) : 0;
                 let fvContribsToDate = 0;
@@ -416,19 +417,15 @@ class SwissRentBuyCalculator {
                     }
                     principalContribsToDate = annualAmortization * contribYearsToDate;
                 } else if (scenarioMode === 'cashflowParity') {
-                    // Sum variable contributions and their growth up to this year
+                    // Sum variable contributions (positive = invest, negative = withdraw) with growth to date
                     for (let i = 0; i < yearsToDate; i++) {
-                        const c = contributionsPerYear[i];
-                        if (c > 0) {
-                            principalContribsToDate += c;
-                            if (investmentYieldRate === 0) {
-                                fvContribsToDate += c;
-                            } else {
-                                const growthYears = yearsToDate - (i + 1);
-                                fvContribsToDate += c * Math.pow(1 + investmentYieldRate, growthYears);
-                            }
-                        } else if (c < 0) {
-                            principalContribsToDate += c; // withdrawals reduce principal
+                        const c = contributionsPerYear[i] || 0;
+                        principalContribsToDate += c;
+                        if (investmentYieldRate === 0) {
+                            fvContribsToDate += c;
+                        } else {
+                            const growthYears = yearsToDate - (i + 1);
+                            fvContribsToDate += c * Math.pow(1 + investmentYieldRate, growthYears);
                         }
                     }
                 }
@@ -438,17 +435,23 @@ class SwissRentBuyCalculator {
                 // Apply tax on realized gains up to this year using same rate
                 const totalInvestmentTax = investmentGains * marginalTaxRate;
                 
-                // Net purchase cost at end of this year (using same formula as main calculation)
-                yearData.totalPurchaseCostToDate = cumulativePurchaseCosts - propertyValueCurrentYear + yearData.endingBalance;
-                
-                // Net rental cost at end of this year (using same formula as main calculation)  
-                const contributionsToDate = scenarioMode === 'equalSavings'
-                    ? (annualAmortization * contribYearsToDate)
-                    : (scenarioMode === 'cashflowParity' ? principalContribsToDate : 0);
-                yearData.totalRentalCostToDate = (cumulativeRentalCosts - investmentGains + totalInvestmentTax - downPayment - contributionsToDate);
-                
-                // Cumulative advantage (positive means buying is better)
-                yearData.cumulativeAdvantage = yearData.totalRentalCostToDate - yearData.totalPurchaseCostToDate;
+                // Mark-to-market net worth approach for continuity
+                // Owner: equity minus cumulative owner cash outlays (interest + maintenance + owner net tax + initial capex)
+                const cumulativeOwnerNetTax = yearlyBreakdown.slice(0, yearsToDate).reduce((sum, r) => sum + r.annualTaxDifference, 0);
+                const initialOwnerCapex = additionalPurchaseCosts + totalRenovations;
+                const cumulativeOwnerCashOutlays = yearlyBreakdown.slice(0, yearsToDate).reduce((sum, r) => sum + r.annualInterest + r.annualMaintenance, 0) + cumulativeOwnerNetTax + initialOwnerCapex;
+                const wealthBuyToDate = (propertyValueCurrentYear - yearData.endingBalance) - cumulativeOwnerCashOutlays;
+
+                // Renter: portfolio after tax minus cumulative rent + supplemental + renter investment-income tax
+                const renterInvestmentTaxToDate = (gainsInitialToDate + gainsContribsToDate) * marginalTaxRate;
+                const portfolioAfterTaxToDate = fvInitialToDate + fvContribsToDate - renterInvestmentTaxToDate;
+                const cumulativeRenterCashOutlays = cumulativeRentalCosts;
+                const wealthRentToDate = portfolioAfterTaxToDate - cumulativeRenterCashOutlays;
+
+                // Advantage (mark-to-market) for smooth series
+                yearData.totalPurchaseCostToDate = wealthBuyToDate; // repurpose fields to display series
+                yearData.totalRentalCostToDate = wealthRentToDate;
+                yearData.cumulativeAdvantage = wealthBuyToDate - wealthRentToDate;
                 yearData.advantageDeltaFromPriorYear = yearsToDate > 1 ? (yearData.cumulativeAdvantage - priorCumulativeAdvantage) : yearData.cumulativeAdvantage;
             }
 
@@ -501,15 +504,7 @@ class SwissRentBuyCalculator {
             compareText = `Renting is CHF ${Math.abs(resultValue).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} cheaper than buying over the relevant time frame.`;
         }
 
-        // Overwrite final year's cumulative fields to ensure consistency with final totals
-        if (termYears > 0) {
-            const lastIdx = termYears - 1;
-            const prevAdv = lastIdx > 0 ? (yearlyBreakdown[lastIdx - 1].cumulativeAdvantage || 0) : 0;
-            yearlyBreakdown[lastIdx].totalPurchaseCostToDate = totalPurchaseCost;
-            yearlyBreakdown[lastIdx].totalRentalCostToDate = totalRentalCost;
-            yearlyBreakdown[lastIdx].cumulativeAdvantage = resultValue;
-            yearlyBreakdown[lastIdx].advantageDeltaFromPriorYear = resultValue - prevAdv;
-        }
+        // Do not overwrite final year; series already reflects mark-to-market and is continuous
 
         return {
             // Input parameters

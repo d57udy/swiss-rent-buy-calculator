@@ -11,6 +11,7 @@
     "test:auto-calc": "node test-complete-auto-calculations.js",
     "test:realistic": "node realistic-parameter-validation.js",
     "test:comprehensive": "node comprehensive-test-runner.js",
+    "test:new": "node test-new-implementation.js",
     "test:playwright": "playwright test test-parameter-sweep.js",
     "test:playwright:headed": "playwright test test-parameter-sweep.js --headed",
     "test:playwright:debug": "playwright test test-parameter-sweep.js --debug",
