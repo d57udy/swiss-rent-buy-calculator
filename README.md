@@ -1,5 +1,7 @@
 # Swiss Rent vs Buy Calculator
 
+**🚀 [Try the Calculator Live](https://d57udy.github.io/swiss-rent-buy-calculator/)**
+
 A comprehensive, production-ready web application for analyzing the financial decision between renting and buying property in Switzerland. This tool provides advanced functionality beyond traditional calculators, including break-even analysis, parameter sweeps, and comprehensive Swiss tax modeling.
 
 ## 🎯 Project Overview
@@ -75,12 +77,12 @@ A comprehensive, production-ready web application for analyzing the financial de
 ## 🚀 Getting Started
 
 ### Online Usage
-Visit the deployed calculator at: `[Your GitHub Pages URL]`
+**🌐 [Access the live calculator here](https://d57udy.github.io/swiss-rent-buy-calculator/)**
 
 ### Local Development
 ```bash
 # Clone the repository
-git clone https://github.com/yourusername/swiss-rent-buy-calculator.git
+git clone https://github.com/d57udy/swiss-rent-buy-calculator.git
 
 # Navigate to project directory
 cd swiss-rent-buy-calculator
@@ -475,7 +477,7 @@ node random-sample-validation.js
 ```bash
 # Enable GitHub Pages in repository settings
 # Select source: main branch
-# Access at: https://github.com/d57udy/swiss-rent-buy-calculator
+# Access at: https://d57udy.github.io/swiss-rent-buy-calculator/
 ```
 
 ### Local Hosting
@@ -541,6 +543,19 @@ const sweepRanges = {
 - **Excel Compatible**: Proper formatting for spreadsheet import
 - **Custom Fields**: Add calculated metrics to export
 - **Batch Processing**: Support for multiple scenario exports
+
+## 🐛 Feedback & Issues
+
+Found a bug or have a feature request? We'd love to hear from you!
+
+### Report Issues
+- **🐛 Bug Reports**: [Create a new issue](https://github.com/d57udy/swiss-rent-buy-calculator/issues/new) with details about the problem
+- **💡 Feature Requests**: [Suggest new functionality](https://github.com/d57udy/swiss-rent-buy-calculator/issues/new) or improvements
+- **📖 Documentation**: Help improve the README or add usage examples
+
+### Getting Help
+- **📋 Existing Issues**: [Browse current issues](https://github.com/d57udy/swiss-rent-buy-calculator/issues) to see if your question has been addressed
+- **💬 Discussions**: Start a discussion for general questions about Swiss real estate or calculator usage
 
 ## 🤝 Contributing
 
@@ -680,15 +695,18 @@ The authors and contributors assume **no liability** for:
 ## 📞 Support & Feedback
 
 ### Getting Help
-- **Documentation**: Comprehensive README and code comments
-- **Issues**: GitHub Issues for bug reports and feature requests
-- **Discussions**: GitHub Discussions for questions and community support
+- **📖 Documentation**: Comprehensive README and code comments
+- **🐛 Issues**: [GitHub Issues](https://github.com/d57udy/swiss-rent-buy-calculator/issues) for bug reports and feature requests
+- **💬 Discussions**: Community questions about Swiss real estate or calculator usage
 
 ### Feedback Welcome
-- **Feature Requests**: Suggestions for new functionality
-- **Bug Reports**: Issues with calculations or user interface
-- **Accuracy Improvements**: Better modeling of Swiss market conditions
-- **User Experience**: Interface and workflow enhancements
+We actively encourage feedback to improve the calculator:
+- **🚀 Feature Requests**: [Suggest new functionality](https://github.com/d57udy/swiss-rent-buy-calculator/issues/new) or improvements
+- **🐛 Bug Reports**: [Report issues](https://github.com/d57udy/swiss-rent-buy-calculator/issues/new) with calculations or user interface
+- **📊 Accuracy Improvements**: Better modeling of Swiss market conditions
+- **✨ User Experience**: Interface and workflow enhancements
+
+**Your input helps make this tool better for the entire Swiss real estate community!**
 
 ---
 

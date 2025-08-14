@@ -15,7 +15,7 @@ class SwissChartManager {
         this.chartData = null;
         this.isInitialized = false;
         this.defaultSettings = {
-            activeLines: ['buyOutlayNet', 'rentOutlayNet'],
+            activeLines: ['cumBuyCost', 'cumRentCost'],
             zoomLevel: { min: null, max: null },
             panPosition: { x: 0, y: 0 },
             isExpanded: true
