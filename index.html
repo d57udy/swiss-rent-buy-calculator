@@ -872,82 +872,119 @@
                         <!-- Chart controls -->
                         <div class="chart-controls" style="display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:12px; padding:8px; background:#f8f9fa; border-radius:4px;">
                             <div class="line-toggles" style="display:flex; flex-wrap:wrap; gap:8px; max-width:calc(100% - 200px);">
-                                <!-- Core Financial Lines -->
+                                <!-- Buy Scenario Group (Blue) -->
+                                <div style="width:100%; padding:4px 8px; background:#eef5ff; border-left:3px solid #c7e0ff; border-radius:4px; margin:4px 0;">
+                                    <strong style="font-size:12px; color:#0066cc;">🏠 Buy Scenario</strong>
+                                </div>
                                 <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-cumBuyCost" checked data-line="cumBuyCost">
-                                    <span style="color:#dc3545;">● Cumulative Buy Cost</span>
+                                    <input type="checkbox" id="toggle-buyOutlayNet" checked data-line="buyOutlayNet">
+                                    <span style="color:#dc3545;">● Buy Outlay (net)</span>
                                 </label>
                                 <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-cumRentCost" checked data-line="cumRentCost">
-                                    <span style="color:#0d6efd;">● Cumulative Rent Cost</span>
+                                    <input type="checkbox" id="toggle-interest" data-line="interest">
+                                    <span style="color:#e83e8c;">● Interest</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualAmortization" data-line="annualAmortization">
+                                    <span style="color:#6610f2;">● Amortization</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualMaintenance" data-line="annualMaintenance">
+                                    <span style="color:#d63384;">● Maintenance/Utilities</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-ownerNetTax" data-line="ownerNetTax">
+                                    <span style="color:#ffc107;">● Owner Tax (Net)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-taxImputedRent" data-line="taxImputedRent">
+                                    <span style="color:#fd7e14;">● Imputed Rent Tax (Owner)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-taxSavingsInterest" data-line="taxSavingsInterest">
+                                    <span style="color:#20c997;">● Mortgage Interest Deduction (Owner)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-taxSavingsPropertyExpenses" data-line="taxSavingsPropertyExpenses">
+                                    <span style="color:#17a2b8;">● Maintenance/Expense Deduction (Owner)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-mortgageBalance" data-line="mortgageBalance">
+                                    <span style="color:#20c997;">● Mortgage Balance (End)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-homeownerEquity" data-line="homeownerEquity">
+                                    <span style="color:#198754;">● Equity (End)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-propertyValue" data-line="propertyValue">
+                                    <span style="color:#6f42c1;">● Property Value (End)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-ltvEnd" data-line="ltvEnd">
+                                    <span style="color:#dc3545;">● LTV (End)</span>
+                                </label>
+                                
+                                <!-- Rent Scenario Group (Yellow) -->
+                                <div style="width:100%; padding:4px 8px; background:#fffbf0; border-left:3px solid #ffe08a; border-radius:4px; margin:8px 0 4px 0;">
+                                    <strong style="font-size:12px; color:#cc8800;">🏠 Rent Scenario</strong>
+                                </div>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-rentOutlayNet" checked data-line="rentOutlayNet">
+                                    <span style="color:#0d6efd;">● Rent Outlay</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualRent" data-line="annualRent">
+                                    <span style="color:#0d6efd;">● Annual Rent</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-annualRentalCosts" data-line="annualRentalCosts">
+                                    <span style="color:#198754;">● Rental Supplemental Costs</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-renterContribWithdrawal" data-line="renterContribWithdrawal">
+                                    <span style="color:#6f42c1;">● Renter Investment Contrib./Withdrawal</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumulativeRenterPrincipal" data-line="cumulativeRenterPrincipal">
+                                    <span style="color:#fd7e14;">● Cum. Renter Principal</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-investmentGainsThisYear" data-line="investmentGainsThisYear">
+                                    <span style="color:#ffc107;">● Investment Gains (Year)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-investmentIncomeTax" data-line="investmentIncomeTax">
+                                    <span style="color:#e83e8c;">● Investment Income Tax (Year)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumulativeInvestmentGains" data-line="cumulativeInvestmentGains">
+                                    <span style="color:#6610f2;">● Investment Gains (Cum.)</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-portfolioEnd" data-line="portfolioEnd">
+                                    <span style="color:#fd7e14;">● Portfolio (End)</span>
+                                </label>
+                                
+                                <!-- Outcome Group (Gray) -->
+                                <div style="width:100%; padding:4px 8px; background:#f8f9fa; border-left:3px solid #d0d7de; border-radius:4px; margin:8px 0 4px 0;">
+                                    <strong style="font-size:12px; color:#6c757d;">📊 Outcome</strong>
+                                </div>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumBuyCost" data-line="cumBuyCost">
+                                    <span style="color:#d63384;">● Cumulative Buy Cost</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-cumRentCost" data-line="cumRentCost">
+                                    <span style="color:#20c997;">● Cumulative Rent Cost</span>
+                                </label>
+                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
+                                    <input type="checkbox" id="toggle-advantageDelta" data-line="advantageDelta">
+                                    <span style="color:#17a2b8;">● Advantage Δ</span>
                                 </label>
                                 <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
                                     <input type="checkbox" id="toggle-advantage" data-line="advantage">
                                     <span style="color:#198754;">● Advantage</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-propertyValue" data-line="propertyValue">
-                                    <span style="color:#6f42c1;">● Property Value</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-portfolioEnd" data-line="portfolioEnd">
-                                    <span style="color:#fd7e14;">● Investment Portfolio</span>
-                                </label>
-                                
-                                <!-- Annual Flow Lines -->
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-annualRent" data-line="annualRent">
-                                    <span style="color:#17a2b8;">● Annual Rent</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-interest" data-line="interest">
-                                    <span style="color:#e83e8c;">● Annual Interest</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-annualAmortization" data-line="annualAmortization">
-                                    <span style="color:#6610f2;">● Annual Amortization</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-annualMaintenance" data-line="annualMaintenance">
-                                    <span style="color:#d63384;">● Annual Maintenance</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-annualRentalCosts" data-line="annualRentalCosts">
-                                    <span style="color:#fd7e14;">● Annual Rental Costs</span>
-                                </label>
-                                
-                                <!-- Balance and Equity Lines -->
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-mortgageBalance" data-line="mortgageBalance">
-                                    <span style="color:#20c997;">● Mortgage Balance</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-homeownerEquity" data-line="homeownerEquity">
-                                    <span style="color:#20c997;">● Homeowner Equity</span>
-                                </label>
-                                
-                                <!-- Tax and Investment Lines -->
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-annualTaxDifference" data-line="annualTaxDifference">
-                                    <span style="color:#198754;">● Annual Tax Difference</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-investmentGainsThisYear" data-line="investmentGainsThisYear">
-                                    <span style="color:#ffc107;">● Investment Gains This Year</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-cumulativeInvestmentGains" data-line="cumulativeInvestmentGains">
-                                    <span style="color:#fd7e14;">● Cumulative Investment Gains</span>
-                                </label>
-                                
-                                <!-- Cash Flow Lines -->
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-buyAnnualCashOutlay" data-line="buyAnnualCashOutlay">
-                                    <span style="color:#dc3545;">● Buy Annual Cash Outlay</span>
-                                </label>
-                                <label style="font-size:11px; color:#1d1d1f; display:flex; align-items:center; gap:4px; cursor:pointer;">
-                                    <input type="checkbox" id="toggle-rentAnnualCashOutlay" data-line="rentAnnualCashOutlay">
-                                    <span style="color:#0d6efd;">● Rent Annual Cash Outlay</span>
                                 </label>
                             </div>
                             <div class="chart-actions" style="display:flex; gap:8px; margin-left:auto;">
@@ -1151,25 +1188,25 @@
                             <a href="https://twitter.com/intent/tweet?text=Check%20out%20this%20comprehensive%20Swiss%20Rent%20vs%20Buy%20Calculator!%20It%20helped%20me%20make%20an%20informed%20property%20decision.&url=https://yoursite.com" 
                                target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
                                 🐦 Twitter
                             </a>
                             <a href="https://www.linkedin.com/sharing/share-offsite/?url=https://yoursite.com" 
                                target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
                                 💼 LinkedIn
                             </a>
                             <a href="https://www.facebook.com/sharer/sharer.php?u=https://yoursite.com" 
                                target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
                                 📘 Facebook
                             </a>
                             <a href="https://reddit.com/submit?url=https://yoursite.com&title=Swiss%20Rent%20vs%20Buy%20Calculator" 
                                target="_blank" rel="noopener noreferrer" style="display: inline-block; background: rgba(255,255,255,0.2); color: white; 
                                       padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600;
-                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;>
+                                      border: 1px solid rgba(255,255,255,0.3); transition: all 0.3s ease; font-size: 14px;">
                                 🤖 Reddit
                             </a>
                         </div>
@@ -1540,8 +1577,8 @@
             const rentVsBuyDelta = -buyVsRentDelta;
 
             // Compute break-even year (exact sign change across years)
-            let breakEvenYear = null; // closest year (used elsewhere)
             let exactBreakEvenYear = null; // only when a true crossing occurs between consecutive years
+            let closestBreakEvenYear = null; // closest year to zero advantage
             if (Array.isArray(result.YearlyBreakdown)) {
                 for (let i = 1; i < result.YearlyBreakdown.length; i++) {
                     const prev = result.YearlyBreakdown[i - 1].cumulativeAdvantage;
@@ -1552,12 +1589,15 @@
                     }
                 }
                 // Fallback closest year for table navigation
-                    let minAbs = Infinity;
-                    result.YearlyBreakdown.forEach(y => {
-                        const a = Math.abs(y.cumulativeAdvantage);
-                        if (a < minAbs) { minAbs = a; breakEvenYear = y.year; }
-                    });
+                let minAbs = Infinity;
+                result.YearlyBreakdown.forEach(y => {
+                    const a = Math.abs(y.cumulativeAdvantage);
+                    if (a < minAbs) { minAbs = a; closestBreakEvenYear = y.year; }
+                });
             }
+            
+            // Use consistent break-even year: prefer exact, fallback to closest
+            const breakEvenYear = exactBreakEvenYear || closestBreakEvenYear;
 
             // Build collapsible section helper
             function section(title, color, id, inner) {
@@ -1574,7 +1614,7 @@
             }
 
             // Summary with mode badge
-            const compareLine = `${result.CompareText}${exactBreakEvenYear ? ` Break-even is after ${exactBreakEvenYear} years.` : ''}`;
+            const compareLine = `${result.CompareText}${breakEvenYear ? ` Break-even is ${exactBreakEvenYear ? 'after' : 'closest to'} ${breakEvenYear} years.` : ''}`;
             const summary = `
                 <div style="margin-bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
                     <div style="flex: 1; padding: 16px; background: white; border-radius: 8px; border-left: 4px solid ${decisionClass === 'buy' ? '#34c759' : decisionClass === 'rent' ? '#ff3b30' : '#ff9500'};">
@@ -1697,7 +1737,7 @@
                         <input type="checkbox" id="${showAdvancedId}" ${showAdvanced ? 'checked' : ''}>
                         <span>Show advanced columns</span>
                     </label>
-                    ${breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to closest (Year ${exactBreakEvenYear || breakEvenYear})</button>` : ''}
+                    ${breakEvenYear ? `<button id="jumpBreakEvenBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Jump to ${exactBreakEvenYear ? 'break-even' : 'closest'} (Year ${breakEvenYear})</button>` : ''}
                     <button id="downloadYearlyCsvBtn" class="button secondary" style="padding:6px 10px; font-size:12px;">Download Year-by-Year CSV</button>
                 </div>
                 <div class="yby-tablewrap" style="overflow-x: auto; margin-bottom: 12px;">

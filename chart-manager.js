@@ -15,115 +15,165 @@ class SwissChartManager {
         this.chartData = null;
         this.isInitialized = false;
         this.defaultSettings = {
-            activeLines: ['cumBuyCost', 'cumRentCost'],
+            activeLines: ['buyOutlayNet', 'rentOutlayNet'],
             zoomLevel: { min: null, max: null },
             panPosition: { x: 0, y: 0 },
             isExpanded: true
         };
         this.currentSettings = { ...this.defaultSettings };
         
-        // Chart configuration - expanded to include all year-by-year table columns
+        // Chart configuration - matches year-by-year table columns exactly
         this.lineConfigs = {
-            cumBuyCost: {
-                label: 'Cumulative Buy Cost',
+            // Always visible columns
+            buyOutlayNet: {
+                label: 'Buy Outlay (net)',
                 borderColor: '#dc3545',
                 backgroundColor: 'rgba(220, 53, 69, 0.1)',
                 yAxisID: 'y'
             },
-            cumRentCost: {
-                label: 'Cumulative Rent Cost',
-                borderColor: '#0d6efd',
-                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+            mortgageBalance: {
+                label: 'Mortgage Balance (End)',
+                borderColor: '#20c997',
+                backgroundColor: 'rgba(32, 201, 151, 0.1)',
                 yAxisID: 'y'
             },
-            advantage: {
-                label: 'Advantage (Rent - Buy)',
+            homeownerEquity: {
+                label: 'Equity (End)',
                 borderColor: '#198754',
                 backgroundColor: 'rgba(25, 135, 84, 0.1)',
                 yAxisID: 'y'
             },
-            propertyValue: {
-                label: 'Property Value',
+            rentOutlayNet: {
+                label: 'Rent Outlay',
+                borderColor: '#0d6efd',
+                backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                yAxisID: 'y'
+            },
+            renterContribWithdrawal: {
+                label: 'Renter Investment Contrib./Withdrawal',
                 borderColor: '#6f42c1',
                 backgroundColor: 'rgba(111, 66, 193, 0.1)',
                 yAxisID: 'y'
             },
             portfolioEnd: {
-                label: 'Investment Portfolio',
+                label: 'Portfolio (End)',
                 borderColor: '#fd7e14',
                 backgroundColor: 'rgba(253, 126, 20, 0.1)',
                 yAxisID: 'y'
             },
-            interest: {
-                label: 'Annual Interest',
-                borderColor: '#e83e8c',
-                backgroundColor: 'rgba(232, 62, 140, 0.1)',
-                yAxisID: 'y'
-            },
-            mortgageBalance: {
-                label: 'Mortgage Balance',
-                borderColor: '#20c997',
-                backgroundColor: 'rgba(32, 201, 151, 0.1)',
-                yAxisID: 'y'
-            },
-            annualRent: {
-                label: 'Annual Rent',
+            advantageDelta: {
+                label: 'Advantage Δ',
                 borderColor: '#17a2b8',
                 backgroundColor: 'rgba(23, 162, 184, 0.1)',
                 yAxisID: 'y'
             },
+            advantage: {
+                label: 'Advantage',
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                yAxisID: 'y'
+            },
+            // Advanced mode columns
+            interest: {
+                label: 'Interest',
+                borderColor: '#e83e8c',
+                backgroundColor: 'rgba(232, 62, 140, 0.1)',
+                yAxisID: 'y'
+            },
             annualAmortization: {
-                label: 'Annual Amortization',
+                label: 'Amortization',
                 borderColor: '#6610f2',
                 backgroundColor: 'rgba(102, 16, 242, 0.1)',
                 yAxisID: 'y'
             },
             annualMaintenance: {
-                label: 'Annual Maintenance',
+                label: 'Maintenance/Utilities',
                 borderColor: '#d63384',
                 backgroundColor: 'rgba(214, 51, 132, 0.1)',
                 yAxisID: 'y'
             },
-            annualRentalCosts: {
-                label: 'Annual Rental Costs',
-                borderColor: '#fd7e14',
-                backgroundColor: 'rgba(253, 126, 20, 0.1)',
-                yAxisID: 'y'
-            },
-            annualTaxDifference: {
-                label: 'Annual Tax Difference',
-                borderColor: '#198754',
-                backgroundColor: 'rgba(25, 135, 84, 0.1)',
-                yAxisID: 'y'
-            },
-            homeownerEquity: {
-                label: 'Homeowner Equity',
-                borderColor: '#20c997',
-                backgroundColor: 'rgba(32, 201, 151, 0.1)',
-                yAxisID: 'y'
-            },
-            investmentGainsThisYear: {
-                label: 'Investment Gains This Year',
+            ownerNetTax: {
+                label: 'Owner Tax (Net)',
                 borderColor: '#ffc107',
                 backgroundColor: 'rgba(255, 193, 7, 0.1)',
                 yAxisID: 'y'
             },
-            cumulativeInvestmentGains: {
-                label: 'Cumulative Investment Gains',
+            taxImputedRent: {
+                label: 'Imputed Rent Tax (Owner)',
                 borderColor: '#fd7e14',
                 backgroundColor: 'rgba(253, 126, 20, 0.1)',
                 yAxisID: 'y'
             },
-            buyAnnualCashOutlay: {
-                label: 'Buy Annual Cash Outlay',
+            taxSavingsInterest: {
+                label: 'Mortgage Interest Deduction (Owner)',
+                borderColor: '#20c997',
+                backgroundColor: 'rgba(32, 201, 151, 0.1)',
+                yAxisID: 'y'
+            },
+            taxSavingsPropertyExpenses: {
+                label: 'Maintenance/Expense Deduction (Owner)',
+                borderColor: '#17a2b8',
+                backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                yAxisID: 'y'
+            },
+            propertyValue: {
+                label: 'Property Value (End)',
+                borderColor: '#6f42c1',
+                backgroundColor: 'rgba(111, 66, 193, 0.1)',
+                yAxisID: 'y'
+            },
+            ltvEnd: {
+                label: 'LTV (End)',
                 borderColor: '#dc3545',
                 backgroundColor: 'rgba(220, 53, 69, 0.1)',
                 yAxisID: 'y'
             },
-            rentAnnualCashOutlay: {
-                label: 'Rent Annual Cash Outlay',
+            annualRent: {
+                label: 'Annual Rent',
                 borderColor: '#0d6efd',
                 backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                yAxisID: 'y'
+            },
+            annualRentalCosts: {
+                label: 'Rental Supplemental Costs',
+                borderColor: '#198754',
+                backgroundColor: 'rgba(25, 135, 84, 0.1)',
+                yAxisID: 'y'
+            },
+            cumulativeRenterPrincipal: {
+                label: 'Cum. Renter Principal',
+                borderColor: '#fd7e14',
+                backgroundColor: 'rgba(253, 126, 20, 0.1)',
+                yAxisID: 'y'
+            },
+            investmentGainsThisYear: {
+                label: 'Investment Gains (Year)',
+                borderColor: '#ffc107',
+                backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                yAxisID: 'y'
+            },
+            investmentIncomeTax: {
+                label: 'Investment Income Tax (Year)',
+                borderColor: '#e83e8c',
+                backgroundColor: 'rgba(232, 62, 140, 0.1)',
+                yAxisID: 'y'
+            },
+            cumulativeInvestmentGains: {
+                label: 'Investment Gains (Cum.)',
+                borderColor: '#6610f2',
+                backgroundColor: 'rgba(102, 16, 242, 0.1)',
+                yAxisID: 'y'
+            },
+            cumBuyCost: {
+                label: 'Cumulative Buy Cost',
+                borderColor: '#d63384',
+                backgroundColor: 'rgba(214, 51, 132, 0.1)',
+                yAxisID: 'y'
+            },
+            cumRentCost: {
+                label: 'Cumulative Rent Cost',
+                borderColor: '#20c997',
+                backgroundColor: 'rgba(32, 201, 151, 0.1)',
                 yAxisID: 'y'
             }
         };
@@ -363,7 +413,7 @@ class SwissChartManager {
         yearByYearArray.forEach(row => {
             labels.push(row.year.toString());
             
-            // Calculate cash outlay the same way as the HTML table
+            // Calculate values exactly as the HTML table does
             const ownerNetTax = (row.taxImputedRent || 0) - (row.taxSavingsInterest || 0) - (row.taxSavingsPropertyExpenses || 0);
             const buyOutlayNet = (row.annualInterest || 0) + (row.annualAmortization || 0) + (row.annualMaintenance || 0) + ownerNetTax;
             
@@ -374,24 +424,38 @@ class SwissChartManager {
             })();
             const rentOutlayNet = (row.annualRent || 0) + rentSuppCostsInput;
             
-            // Map the data from the year-by-year calculation using all available fields
-            datasets.cumBuyCost.push(row.totalPurchaseCostToDate || 0);
-            datasets.cumRentCost.push(row.totalRentalCostToDate || 0);
-            datasets.advantage.push(row.cumulativeAdvantage || 0);
-            datasets.propertyValue.push(row.propertyValueEndOfYear || 0);
-            datasets.portfolioEnd.push(row.portfolioValueEndOfYear || 0);
-            datasets.interest.push(row.annualInterest || 0);
-            datasets.mortgageBalance.push(row.endingBalance || 0);
-            datasets.annualRent.push(row.annualRent || 0);
-            datasets.annualAmortization.push(row.annualAmortization || 0);
-            datasets.annualMaintenance.push(row.annualMaintenance || 0);
-            datasets.annualRentalCosts.push(row.annualRentalCosts || 0);
-            datasets.annualTaxDifference.push(row.annualTaxDifference || 0);
-            datasets.homeownerEquity.push(row.homeownerEquityEndOfYear || 0);
-            datasets.investmentGainsThisYear.push(row.investmentGainsThisYear || 0);
-            datasets.cumulativeInvestmentGains.push(row.cumulativeInvestmentGains || 0);
-            datasets.buyAnnualCashOutlay.push(buyOutlayNet);
-            datasets.rentAnnualCashOutlay.push(rentOutlayNet);
+            // Calculate LTV
+            const ltvEnd = row.propertyValueEndOfYear ? ((row.endingBalance || 0) / row.propertyValueEndOfYear) * 100 : 0;
+            
+            // Map data to match table columns exactly
+            // Always visible columns
+            if (datasets.buyOutlayNet) datasets.buyOutlayNet.push(buyOutlayNet);
+            if (datasets.mortgageBalance) datasets.mortgageBalance.push(row.endingBalance || 0);
+            if (datasets.homeownerEquity) datasets.homeownerEquity.push(row.homeownerEquityEndOfYear || 0);
+            if (datasets.rentOutlayNet) datasets.rentOutlayNet.push(rentOutlayNet);
+            if (datasets.renterContribWithdrawal) datasets.renterContribWithdrawal.push(row.renterContribution || 0);
+            if (datasets.portfolioEnd) datasets.portfolioEnd.push(row.portfolioValueEndOfYear || 0);
+            if (datasets.advantageDelta) datasets.advantageDelta.push(row.advantageDeltaFromPriorYear || 0);
+            if (datasets.advantage) datasets.advantage.push(row.cumulativeAdvantage || 0);
+            
+            // Advanced mode columns
+            if (datasets.interest) datasets.interest.push(row.annualInterest || 0);
+            if (datasets.annualAmortization) datasets.annualAmortization.push(row.annualAmortization || 0);
+            if (datasets.annualMaintenance) datasets.annualMaintenance.push(row.annualMaintenance || 0);
+            if (datasets.ownerNetTax) datasets.ownerNetTax.push(ownerNetTax);
+            if (datasets.taxImputedRent) datasets.taxImputedRent.push(row.taxImputedRent || 0);
+            if (datasets.taxSavingsInterest) datasets.taxSavingsInterest.push(row.taxSavingsInterest || 0);
+            if (datasets.taxSavingsPropertyExpenses) datasets.taxSavingsPropertyExpenses.push(row.taxSavingsPropertyExpenses || 0);
+            if (datasets.propertyValue) datasets.propertyValue.push(row.propertyValueEndOfYear || 0);
+            if (datasets.ltvEnd) datasets.ltvEnd.push(ltvEnd);
+            if (datasets.annualRent) datasets.annualRent.push(row.annualRent || 0);
+            if (datasets.annualRentalCosts) datasets.annualRentalCosts.push(rentSuppCostsInput);
+            if (datasets.cumulativeRenterPrincipal) datasets.cumulativeRenterPrincipal.push(row.cumulativeRenterPrincipal || 0);
+            if (datasets.investmentGainsThisYear) datasets.investmentGainsThisYear.push(row.investmentGainsThisYear || 0);
+            if (datasets.investmentIncomeTax) datasets.investmentIncomeTax.push(row.investmentIncomeTax || 0);
+            if (datasets.cumulativeInvestmentGains) datasets.cumulativeInvestmentGains.push(row.cumulativeInvestmentGains || 0);
+            if (datasets.cumBuyCost) datasets.cumBuyCost.push(row.totalPurchaseCostToDate || 0);
+            if (datasets.cumRentCost) datasets.cumRentCost.push(row.totalRentalCostToDate || 0);
         });
         
         return { labels, datasets };

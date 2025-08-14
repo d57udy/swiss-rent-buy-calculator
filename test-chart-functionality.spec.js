@@ -51,21 +51,21 @@ test.describe('Chart Functionality Tests', () => {
   test('Chart controls are present and functional', async ({ page }) => {
     // Chart section should already be expanded by default
     // Check line toggle controls exist
-    const cumBuyCostToggle = await page.locator('#toggle-cumBuyCost');
-    const cumRentCostToggle = await page.locator('#toggle-cumRentCost');
+    const buyOutlayToggle = await page.locator('#toggle-buyOutlayNet');
+    const rentOutlayToggle = await page.locator('#toggle-rentOutlayNet');
     const advantageToggle = await page.locator('#toggle-advantage');
     const propertyValueToggle = await page.locator('#toggle-propertyValue');
     const portfolioToggle = await page.locator('#toggle-portfolioEnd');
     
-    await expect(cumBuyCostToggle).toBeVisible();
-    await expect(cumRentCostToggle).toBeVisible();
+    await expect(buyOutlayToggle).toBeVisible();
+    await expect(rentOutlayToggle).toBeVisible();
     await expect(advantageToggle).toBeVisible();
     await expect(propertyValueToggle).toBeVisible();
     await expect(portfolioToggle).toBeVisible();
     
-    // Check default states (cumBuyCost and cumRentCost should be checked)
-    await expect(cumBuyCostToggle).toBeChecked();
-    await expect(cumRentCostToggle).toBeChecked();
+    // Check default states (buyOutlayNet and rentOutlayNet should be checked)
+    await expect(buyOutlayToggle).toBeChecked();
+    await expect(rentOutlayToggle).toBeChecked();
     await expect(advantageToggle).not.toBeChecked();
     
     // Check action buttons exist
@@ -134,23 +134,23 @@ test.describe('Chart Functionality Tests', () => {
     
     // Test checkbox interactions
     const advantageToggle = page.locator('#toggle-advantage');
-    const cumBuyCostToggle = page.locator('#toggle-cumBuyCost');
+    const buyOutlayToggle = page.locator('#toggle-buyOutlayNet');
     
-    // Initially advantage should be unchecked, cumBuyCost should be checked
+    // Initially advantage should be unchecked, buyOutlayNet should be checked
     await expect(advantageToggle).not.toBeChecked();
-    await expect(cumBuyCostToggle).toBeChecked();
+    await expect(buyOutlayToggle).toBeChecked();
     
     // Toggle advantage on
     await advantageToggle.check();
     await expect(advantageToggle).toBeChecked();
     
-    // Toggle cumBuyCost off
-    await cumBuyCostToggle.uncheck();
-    await expect(cumBuyCostToggle).not.toBeChecked();
+    // Toggle buyOutlayNet off
+    await buyOutlayToggle.uncheck();
+    await expect(buyOutlayToggle).not.toBeChecked();
     
-    // Toggle cumBuyCost back on
-    await cumBuyCostToggle.check();
-    await expect(cumBuyCostToggle).toBeChecked();
+    // Toggle buyOutlayNet back on
+    await buyOutlayToggle.check();
+    await expect(buyOutlayToggle).toBeChecked();
   });
 
   test('Reset zoom button is clickable', async ({ page }) => {
@@ -250,14 +250,14 @@ test.describe('Chart Functionality Tests', () => {
     await expect(helperText).toBeVisible();
     
     // Check that controls are keyboard accessible
-    const cumBuyCostToggle = await page.locator('#toggle-cumBuyCost');
-    await cumBuyCostToggle.focus();
+    const buyOutlayToggle = await page.locator('#toggle-buyOutlayNet');
+    await buyOutlayToggle.focus();
     await page.keyboard.press('Space');
-    await expect(cumBuyCostToggle).not.toBeChecked();
+    await expect(buyOutlayToggle).not.toBeChecked();
     
     // Return to checked state
     await page.keyboard.press('Space');
-    await expect(cumBuyCostToggle).toBeChecked();
+    await expect(buyOutlayToggle).toBeChecked();
   });
 
   test('Chart handles longer calculation periods', async ({ page }) => {
