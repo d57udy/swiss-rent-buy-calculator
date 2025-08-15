@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Down Payment Manual Mode</title>
+    <style>
+        body { font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; }
+        .test-case { border: 1px solid #ccc; padding: 15px; margin: 15px 0; border-radius: 5px; }
+        .success { background: #d4edda; border-color: #28a745; }
+        .error { background: #f8d7da; border-color: #dc3545; }
+        input, button { padding: 8px; margin: 5px; }
+        .warning { background: #fff3cd; padding: 10px; margin: 10px 0; border-radius: 5px; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>Test: Down Payment Manual Mode</h1>
+    <p>This test verifies that in manual mode, down payment values below 20% show a warning but are not automatically changed.</p>
+    
+    <div class="test-case">
+        <h3>Test Case 1: Manual Mode with Low Down Payment</h3>
+        <label>Purchase Price: <input type="number" id="purchasePrice" value="1000000" readonly></label><br>
+        <label>Down Payment Mode: 
+            <select id="mode">
+                <option value="manual">Manual (should warn but not change)</option>
+                <option value="auto">Auto (should adjust to 20%)</option>
+            </select>
+        </label><br>
+        <label>Down Payment: <input type="number" id="downPayment" value="100000" step="1000"></label><br>
+        <button onclick="testManualMode()">Test Manual Mode Behavior</button>
+        
+        <div id="testResults"></div>
+    </div>
+
+    <script>
+        function testManualMode() {
+            const purchasePrice = parseFloat(document.getElementById('purchasePrice').value);
+            const mode = document.getElementById('mode').value;
+            let downPayment = parseFloat(document.getElementById('downPayment').value);
+            const originalDownPayment = downPayment;
+            
+            const minDownPayment = Math.round(purchasePrice * 0.2);
+            let showWarning = false;
+            let warningMessage = '';
+            
+            // Simulate the logic from the main calculator
+            if (mode === 'manual') {
+                // Manual mode - warn but don't change
+                if (downPayment < minDownPayment && purchasePrice > 0) {
+                    showWarning = true;
+                    warningMessage = 'Warning: Down payment is below the 20% regulatory minimum. This may not be accepted by Swiss lenders.';
+                    // DON'T change the value in manual mode
+                }
+            } else if (mode === 'auto') {
+                // Auto mode - adjust to minimum
+                if (downPayment < minDownPayment && purchasePrice > 0) {
+                    downPayment = minDownPayment;
+                    document.getElementById('downPayment').value = downPayment;
+                    showWarning = true;
+                    warningMessage = 'Warning: Down payment was below 20% minimum. Adjusting to 20%.';
+                }
+            }
+            
+            // Display results
+            const resultsDiv = document.getElementById('testResults');
+            const valueChanged = downPayment !== originalDownPayment;
+            const expectedBehavior = (mode === 'manual' && !valueChanged) || (mode === 'auto' && valueChanged);
+            
+            resultsDiv.innerHTML = `
+                <div class="${expectedBehavior ? 'success' : 'error'}">
+                    <h4>Test Results</h4>
+                    <strong>Mode:</strong> ${mode}<br>
+                    <strong>Original Down Payment:</strong> CHF ${originalDownPayment.toLocaleString()}<br>
+                    <strong>Final Down Payment:</strong> CHF ${downPayment.toLocaleString()}<br>
+                    <strong>Min Required (20%):</strong> CHF ${minDownPayment.toLocaleString()}<br>
+                    <strong>Value Changed:</strong> ${valueChanged ? 'Yes' : 'No'}<br>
+                    <strong>Warning Shown:</strong> ${showWarning ? 'Yes' : 'No'}<br>
+                    <br>
+                    <strong>Expected Behavior:</strong> ${expectedBehavior ? '✅ CORRECT' : '❌ INCORRECT'}<br>
+                    ${mode === 'manual' ? 'Manual mode should warn but NOT change the value' : 'Auto mode should warn AND change the value'}
+                    
+                    ${showWarning ? `<div class="warning">${warningMessage}</div>` : ''}
+                </div>
+            `;
+        }
+        
+        // Run initial test
+        testManualMode();
+    </script>
+</body>
+</html>

@@ -443,7 +443,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="purchasePrice" value="2000000" step="1000" min="0">
+                        <input type="number" id="purchasePrice" value="1400000" step="1000" min="0">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
@@ -498,7 +498,7 @@
                     
                     <div class="input-container" id="downPaymentInput">
                         <label>Down Payment:</label>
-                        <input type="number" id="downPayment" value="400000" step="1000" min="0" disabled>
+                        <input type="number" id="downPayment" value="280000" step="1000" min="0" disabled>
                         <span class="unit">CHF</span>
                     </div>
                     
@@ -509,12 +509,12 @@
                                 <span class="tooltiptext">Used by the “maximize mortgage” modes. The mortgage will be the smaller of this limit and the LTV cap (80% or 66.6% of purchase price). Down payment is the remainder.</span>
                             </div>
                         </label>
-                        <input type="number" id="mortgageAmount" value="1600000" step="1000" min="0">
+                        <input type="number" id="mortgageAmount" value="1120000" step="1000" min="0">
                         <span class="unit">CHF</span>
                     </div>
                     
                     <div id="downPaymentWarning" style="display: none; margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 6px; color: #856404; font-size: 14px;">
-                        <strong>Warning:</strong> Down payment is below 20% minimum. Adjusting to 20%.
+                        <!-- Warning message will be set dynamically based on mode -->
                     </div>
                 </div>
                 
@@ -527,7 +527,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="additionalPurchaseCosts" value="5000" step="1000" min="0">
+                        <input type="number" id="additionalPurchaseCosts" value="42000" step="1000" min="0">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
@@ -560,7 +560,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="mortgageRate" value="0.9" step="0.1" min="0">
+                        <input type="number" id="mortgageRate" value="2.0" step="0.1" min="0">
                         <span class="unit">% per year</span>
                     </div>
                 </div>
@@ -574,7 +574,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="amortizationYears" value="10" step="1" min="1" max="20">
+                        <input type="number" id="amortizationYears" value="15" step="1" min="1" max="20">
                         <span class="unit">years</span>
                     </div>
                 </div>
@@ -590,11 +590,11 @@
                     
                     <div style="margin-bottom: 15px;">
                         <div class="checkbox-container">
-                            <input type="radio" id="autoAmortization" name="amortizationMode" value="auto" checked>
+                            <input type="radio" id="autoAmortization" name="amortizationMode" value="auto">
                             <label for="autoAmortization">Calculate automatically (mortgage ÷ amortization period)</label>
                         </div>
                         <div class="checkbox-container">
-                            <input type="radio" id="swissAmortization" name="amortizationMode" value="swiss">
+                            <input type="radio" id="swissAmortization" name="amortizationMode" value="swiss" checked>
                             <label for="swissAmortization">Swiss regulation: amortize to 66.6% (2/3) LTV within 15 years
                                 <div class="tooltip" style="margin-left: 5px;">
                                     <span class="info-icon">i</span>
@@ -609,7 +609,7 @@
                     </div>
                     
                     <div class="input-container">
-                        <input type="number" id="annualAmortization" value="32000" step="1000" min="0" disabled>
+                        <input type="number" id="annualAmortization" value="22400" step="1000" min="0" disabled>
                         <span class="unit">CHF per year</span>
                     </div>
                 </div>
@@ -632,7 +632,7 @@
                         <label for="autoMaintenance">Calculate automatically (1.25% of purchase price)</label>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="annualMaintenanceCosts" value="25000" step="1000" min="0" disabled>
+                        <input type="number" id="annualMaintenanceCosts" value="17500" step="1000" min="0" disabled>
                         <span class="unit">CHF per year</span>
                     </div>
                 </div>
@@ -646,7 +646,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="propertyAppreciation" value="1.0" step="0.1" min="-5" max="10">
+                        <input type="number" id="propertyAppreciation" value="3.5" step="0.1" min="-5" max="10">
                         <span class="unit">% per year</span>
                     </div>
                 </div>
@@ -671,7 +671,7 @@
                         <label for="autoImputedRental">Calculate automatically (65% of annual rent)</label>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="imputedRentalValue" value="42900" step="1000" min="0" disabled>
+                        <input type="number" id="imputedRentalValue" value="30000" step="1000" min="0" disabled>
                         <span class="unit">CHF per year</span>
                     </div>
                 </div>
@@ -685,7 +685,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="propertyTaxDeductions" value="13000" step="1000" min="0">
+                        <input type="number" id="propertyTaxDeductions" value="10000" step="1000" min="0">
                         <span class="unit">CHF per year</span>
                     </div>
                 </div>
@@ -699,7 +699,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="marginalTaxRate" value="30.0" step="0.1" min="0" max="50">
+                        <input type="number" id="marginalTaxRate" value="25.0" step="0.1" min="0" max="50">
                         <span class="unit">%</span>
                     </div>
                 </div>
@@ -718,21 +718,21 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="monthlyRent" value="5500" step="100" min="0">
+                        <input type="number" id="monthlyRent" value="4000" step="100" min="0">
                         <span class="unit">CHF per month</span>
                     </div>
                 </div>
                 
                 <div class="input-group">
                     <div class="input-label">
-                        Annual Rental Costs
+                        Annual Rental Supplemental Costs
                         <div class="tooltip">
                             <span class="info-icon">i</span>
                             <span class="tooltiptext">Additional annual costs when renting: utilities, insurance, small repairs not covered by landlord.</span>
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="annualRentalCosts" value="20000" step="1000" min="0">
+                        <input type="number" id="annualRentalCosts" value="8000" step="1000" min="0">
                         <span class="unit">CHF per year</span>
                     </div>
                 </div>
@@ -751,7 +751,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="investmentYield" value="3.5" step="0.1" min="0" max="15">
+                        <input type="number" id="investmentYield" value="3.0" step="0.1" min="0" max="15">
                         <span class="unit">% per year</span>
                     </div>
                 </div>
@@ -765,7 +765,7 @@
                         </div>
                     </div>
                     <div class="input-container">
-                        <input type="number" id="termYears" value="10" step="1" min="1" max="30">
+                        <input type="number" id="termYears" value="15" step="1" min="1" max="30">
                         <span class="unit">years</span>
                     </div>
                 </div>
@@ -1057,7 +1057,7 @@
                 <div class="input-group">
                     <div class="input-label">Min Search Price</div>
                     <div class="input-container">
-                        <input type="number" id="beMinPrice" value="1500000" step="10000">
+                        <input type="number" id="beMinPrice" value="1000000" step="10000">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
@@ -1065,7 +1065,7 @@
                 <div class="input-group">
                     <div class="input-label">Max Search Price</div>
                     <div class="input-container">
-                        <input type="number" id="beMaxPrice" value="10000000" step="10000">
+                        <input type="number" id="beMaxPrice" value="2500000" step="10000">
                         <span class="unit">CHF</span>
                     </div>
                 </div>
@@ -1334,13 +1334,12 @@
                 document.getElementById('downPaymentInput').style.display = 'block';
                 document.getElementById('mortgageAmountInput').style.display = 'none';
             } else if (downPaymentMode === 'manual') {
-                // Manual down payment with 20% minimum validation
+                // Manual down payment with warning only (no automatic adjustment)
                 downPayment = parseFloat(document.getElementById('downPayment').value) || 0;
                 const minDownPayment = Math.round(purchasePrice * 0.2);
                 if (downPayment < minDownPayment && purchasePrice > 0) {
-                    downPayment = minDownPayment;
-                    document.getElementById('downPayment').value = downPayment;
                     showWarning = true;
+                    // In manual mode, don't change the value - just show warning
                 }
                 document.getElementById('downPayment').disabled = false;
                 document.getElementById('downPaymentInput').style.display = 'block';
@@ -1377,8 +1376,18 @@
                 document.getElementById('mortgageAmountInput').style.display = 'block';
             }
             
-            // Show/hide warning
-            document.getElementById('downPaymentWarning').style.display = showWarning ? 'block' : 'none';
+            // Show/hide warning with appropriate message
+            const warningElement = document.getElementById('downPaymentWarning');
+            if (showWarning) {
+                warningElement.style.display = 'block';
+                if (downPaymentMode === 'manual') {
+                    warningElement.innerHTML = '<strong>Warning:</strong> Down payment is below the 20% regulatory minimum. This may not be accepted by Swiss lenders.';
+                } else {
+                    warningElement.innerHTML = '<strong>Warning:</strong> Down payment was below 20% minimum. Adjusting to 20%.';
+                }
+            } else {
+                warningElement.style.display = 'none';
+            }
             
             // Calculate final mortgage amount for other calculations
             const finalMortgageAmount = purchasePrice - downPayment;
