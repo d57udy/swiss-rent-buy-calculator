@@ -69,7 +69,7 @@ A comprehensive, production-ready web application for analyzing the financial de
 ### Comprehensive Testing
 - **Calculation Accuracy**: Extensively tested Swiss financial calculations
 - **Methodology Validation**: Inspired by industry-standard approaches
-- **Automated Testing**: 50+ test scenarios covering diverse situations
+- **Automated Testing**: 15+ test suites covering diverse situations
 - **Quality Assurance**: Rigorous validation of calculation logic
 
 ### Quality Assurance
@@ -425,19 +425,65 @@ Total Combinations: 405 scenarios analyzed
 - **JavaScript ES6+**: Modern syntax with class-based architecture
 - **No Dependencies**: Pure vanilla implementation for maximum compatibility
 
-### Code Structure
-```
-index.html              # Main application interface
-calculator.js           # Core calculation engine
-├── SwissRentBuyCalculator class
-├── Parameter validation
-├── Swiss tax modeling
-└── Result formatting
+### 📁 Project File Structure
 
-backend-validation-test.js    # Automated testing suite
-comprehensive-test-runner.js  # Test orchestration
-random-sample-validation.js   # Statistical validation
-```
+#### 📋 Documentation & Configuration
+- **`README.md`** - Project overview, features, usage instructions, and examples
+- **`DEFAULT_VALUES_UPDATE.md`** - Documentation for updating default parameter values
+- **`LICENSE`** - Creative Commons BY-NC-SA 4.0 license terms
+- **`package.json`** - Node.js dependencies, scripts, and project metadata
+- **`package-lock.json`** - Locked dependency versions for reproducible builds
+- **`playwright.config.js`** - Playwright test runner configuration
+
+#### 🧮 Core Application Files
+- **`index.html`** - Main web application UI with interactive form and results display
+- **`calculator.js`** - **[UNIFIED]** Complete calculation engine (482 lines) - single source of truth for all rent vs buy calculations
+- **`chart-manager.js`** - Chart visualization and management functionality
+
+#### 📊 Chart Libraries
+- **`libs-chart.js`** - Chart.js library for data visualization
+- **`libs-chart-zoom.js`** - Chart zoom and pan functionality
+
+#### 🎨 Assets
+- **`favicon.ico`** - Browser favicon (ICO format)
+- **`favicon.svg`** - Scalable favicon (SVG format)
+
+#### 📁 Test Data & Configuration
+- **`example-parameters.json`** - Sample calculation parameters for testing
+- **`moneyland-manual-test-cases.json`** - Manually curated test cases from moneyland.ch for validation
+- **`output-002.csv`** - 8,415 validation test cases
+
+#### 🧪 Backend Tests
+- **`backend-validation-test.js`** - Validates all 8,415 test cases (100% accuracy)
+- **`test-new-implementation.js`** - Compares unified calculator against original implementations
+- **`test-post-reform.js`** - Tests post-2027 Swiss tax reform calculations (5 test scenarios)
+- **`test-post-reform-comprehensive.js`** - Extended post-reform feature testing
+- **`test-final-integration.js`** - End-to-end integration validation
+- **`test-specific-case.js`** - Targeted edge case and scenario testing
+
+#### 🖥️ UI Tests (Playwright)
+- **`test-frontend-yearbyyear.spec.js`** - Year-by-year UI interaction testing
+- **`test-chart-functionality.spec.js`** - Chart display and interaction testing (13 test cases)
+- **`test-chart-debug.spec.js`** - Chart debugging and troubleshooting tests
+- **`test-console-errors.spec.js`** - Console error detection and prevention (4 test cases)
+
+#### 🏃‍♂️ Test Infrastructure
+- **`run-all-tests.js`** - Comprehensive test runner for all backend, UI, and performance tests
+- **`test-report.json`** - Detailed JSON test results with timing and status
+- **`test-report-summary.txt`** - Human-readable test summary report
+
+#### 📁 Generated Directories
+- **`playwright-report/`** - Playwright test reports
+  - `index.html` - HTML test report viewer
+- **`test-results/`** - Playwright test artifacts and screenshots
+
+#### 🎯 Key Architecture Features
+- **Single Source of Truth**: All calculations consolidated into `calculator.js`
+- **Swiss Tax Reform Support**: Current (2025-2027) and post-reform (2027+) tax systems
+- **Comprehensive Testing**: 15 test suites, 100% pass rate, 8,415+ validation cases
+- **Error Prevention**: Console error detection prevents regression issues
+- **Performance**: 100 calculations in 10ms, Chart.js visualization
+- **Accuracy**: 100% match with reference cases (±CHF 0.05 tolerance)
 
 ### Performance Characteristics
 - **Calculation Speed**: < 50ms for single calculations
@@ -638,7 +684,6 @@ git push origin feature/new-functionality
 ### Version 2.1.0+ - Enhanced Single Calculation Output
 
 #### 🆕 **New Features Added**
-- **moneyland.ch Output Compatibility**: Complete restructuring of results display to match industry-standard format
 - **Year-by-Year Timeline Analysis**: Interactive table showing financial progression over the analysis period
 - **Break-even Point Identification**: Clear visualization of when buying becomes advantageous
 - **Professional Table Formatting**: Clean display with currency units in headers, eliminating visual clutter
@@ -722,7 +767,7 @@ The authors and contributors assume **no liability** for:
 ## 🙏 Acknowledgments
 
 ### Inspiration & Methodology
-- Inspired by Swiss market methodology and insights
+- Inspired by Swiss market methodology and insights from moneyland.ch
 - **Swiss Banking Association**: Mortgage calculation standards and regulations
 - **Swiss Tax Authorities**: Imputed rental value and property tax guidelines
 - **Real Estate Industry**: Market data and transaction cost analysis

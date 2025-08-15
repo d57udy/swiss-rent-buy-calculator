@@ -8,8 +8,8 @@
  * 4. The calculator used by UI matches test calculator
  */
 
-// Use the same calculator as the UI (new calculator)
-const { calculateNew } = require('./new-calculator-prototype.js');
+// Use the unified calculator for consistency
+const SwissRentBuyCalculator = require('./calculator.js');
 
 function runFinalIntegrationTest() {
     console.log('=== Final Integration Test ===\n');
@@ -38,14 +38,14 @@ function runFinalIntegrationTest() {
     console.log('Testing with realistic Swiss property parameters...\n');
     
     // Test current system
-    const currentResult = calculateNew({...testParams, postReform: false});
+    const currentResult = SwissRentBuyCalculator.calculate({...testParams, postReform: false});
     console.log('CURRENT SYSTEM (2025-2027):');
     console.log('  Decision:', currentResult.Decision);
     console.log('  Result Value: CHF', Math.round(currentResult.ResultValue).toLocaleString());
     console.log('  PostReform flag:', currentResult.PostReform);
     
     // Test post-reform system
-    const postReformResult = calculateNew({...testParams, postReform: true});
+    const postReformResult = SwissRentBuyCalculator.calculate({...testParams, postReform: true});
     console.log('\nPOST-REFORM SYSTEM (2027+):');
     console.log('  Decision:', postReformResult.Decision);
     console.log('  Result Value: CHF', Math.round(postReformResult.ResultValue).toLocaleString());

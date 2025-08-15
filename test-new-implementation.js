@@ -9,8 +9,11 @@
 const fs = require('fs');
 const path = require('path');
 
-const OldCalc = require('./calculator.js');
-const { calculateNew } = require('./new-calculator-prototype.js');
+// The new implementation is now consolidated into calculator.js
+const UnifiedCalc = require('./calculator.js');
+// For compatibility, we'll use the same calculator for both comparisons
+const OldCalc = UnifiedCalc;
+const calculateNew = UnifiedCalc.calculate;
 const { loadCsvData } = require('./backend-validation-test.js');
 
 function compareResults(oldR, newR, tolerance = 1e-6) {

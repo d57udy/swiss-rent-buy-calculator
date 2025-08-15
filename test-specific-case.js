@@ -2,9 +2,8 @@
  * Test specific user case to debug why post-reform isn't showing differences
  */
 
-// Use the new calculator (same as UI) to ensure consistency
-const { calculateNew } = require('./new-calculator-prototype.js');
-const SwissRentBuyCalculator = { calculate: calculateNew };
+// Use the unified calculator for consistency
+const SwissRentBuyCalculator = require('./calculator.js');
 
 // Test with typical Swiss property parameters
 const testParams = {

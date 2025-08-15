@@ -7,9 +7,8 @@
  * 3. Parameter sweeps
  */
 
-// Use the new calculator (same as UI) to ensure consistency
-const { calculateNew } = require('./new-calculator-prototype.js');
-const SwissRentBuyCalculator = { calculate: calculateNew };
+// Use the unified calculator for consistency
+const SwissRentBuyCalculator = require('./calculator.js');
 
 function runComprehensivePostReformTests() {
     console.log('=== Comprehensive Post-Reform Feature Tests ===\n');

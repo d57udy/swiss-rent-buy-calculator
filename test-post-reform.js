@@ -8,9 +8,8 @@
  * 4. Works across all comparison modes (equal consumption, cash-flow parity, equal savings)
  */
 
-// Use the new calculator (same as UI) to ensure consistency
-const { calculateNew } = require('./new-calculator-prototype.js');
-const SwissRentBuyCalculator = { calculate: calculateNew };
+// Use the unified calculator for consistency
+const SwissRentBuyCalculator = require('./calculator.js');
 
 function runPostReformTests() {
     console.log('=== Post-Reform Eigenmietwert Tests ===\n');

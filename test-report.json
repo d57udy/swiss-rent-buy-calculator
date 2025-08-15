@@ -1,0 +1,98 @@
+{
+  "timestamp": "2025-08-15T20:27:59.841Z",
+  "duration": 16992,
+  "summary": {
+    "totalTests": 10,
+    "passedTests": 10,
+    "criticalTests": 6,
+    "criticalPassed": 6,
+    "overallSuccess": true
+  },
+  "backend": [
+    {
+      "success": true,
+      "output": "=== Post-Reform Eigenmietwert Tests ===\n\nTest 1: Current vs Post-Reform - Equal Consumption Mode\n  Current System - Decision: BUY, Result: CHF 306,848\n  Post-Reform    - Decision: BUY, Result: CHF 307,048\n  ✅ PASS: Post-reform is more favorable to buying\n\nTest 2: Tax Calculation Components\n  Current System - Tax Components:\n    Imputed Rent Tax: CHF 5,250\n    Interest Savings: CHF 3,000\n    Property Savings: CHF 2,500\n  Post-Reform System - Tax Components:\n    Imputed Rent Tax: CHF 0\n    Interest Savings: CHF 0\n    Property Savings: CHF 0\n  ✅ PASS: Post-reform correctly zeros all tax components\n\nTest 3: Post-Reform with Cash-Flow Parity Mode\n  Current System - Result: CHF 311,673\n  Post-Reform    - Result: CHF 311,873\n  ✅ PASS: Post-reform is more favorable in cash-flow parity mode\n\nTest 4: Post-Reform with Equal Savings Mode\n  Current System - Result: CHF 129,282\n  Post-Reform    - Result: CHF 129,482\n  ✅ PASS: Post-reform is more favorable in equal savings mode\n\nTest 5: PostReform Flag Verification\n  ✅ PASS: PostReform flag correctly set in return values\n\n=== Test Results ===\n5/5 tests passed\n🎉 All post-reform tests passed!\n",
+      "duration": 54,
+      "command": "node test-post-reform.js",
+      "description": "Post-Reform Tax System Tests",
+      "critical": true
+    },
+    {
+      "success": true,
+      "output": "=== Comprehensive Post-Reform Feature Tests ===\n\nTest 1: Maximum Bid Finder with Post-Reform System\n  ❌ FAIL: Maximum bid finder threw error: SwissRentBuyCalculator.findBreakevenPrice is not a function\n\nTest 2: Parameter Sweep with Post-Reform System\n  ❌ FAIL: Parameter sweep threw error: SwissRentBuyCalculator.parameterSweep is not a function\n\nTest 3: All Scenario Modes with Post-Reform\n    equalConsumption: BUY CHF 485,485\n    cashflowParity: BUY CHF 536,704\n    equalSavings: BUY CHF 177,519\n  ✅ PASS: All scenario modes work with post-reform\n\nTest 4: CSV Export with Post-Reform Data\n  ❌ FAIL: CSV export threw error: SwissRentBuyCalculator.resultsToCsv is not a function\n\nTest 5: Edge Cases with Post-Reform\n  ✅ PASS: Edge cases handle post-reform correctly\n\n=== Comprehensive Test Results ===\n2/5 tests passed\n⚠️  Some comprehensive tests failed.\n",
+      "duration": 55,
+      "command": "node test-post-reform-comprehensive.js",
+      "description": "Comprehensive Post-Reform Features",
+      "critical": false
+    },
+    {
+      "success": true,
+      "output": "=== Final Integration Test ===\n\nTesting with realistic Swiss property parameters...\n\nCURRENT SYSTEM (2025-2027):\n  Decision: BUY\n  Result Value: CHF 430,850\n  PostReform flag: false\n\nPOST-REFORM SYSTEM (2027+):\n  Decision: BUY\n  Result Value: CHF 403,706\n  PostReform flag: true\n\nDIFFERENCE:\n  Post-Reform - Current: CHF -27,144\n  Percentage change: -6.30 %\n\nYEAR 1 TAX COMPONENT VERIFICATION:\n  Current System:\n    Imputed Rental Tax:    CHF 6,760\n    Interest Tax Savings:  CHF 6,240\n    Property Tax Savings:  CHF 3,120\n    Net Tax Difference:    CHF -2,600\n  Post-Reform System:\n    Imputed Rental Tax:    CHF 0\n    Interest Tax Savings:  CHF 0\n    Property Tax Savings:  CHF 0\n    Net Tax Difference:    CHF 0\n\n=== VALIDATION CHECKS ===\n✅ Test 1 - PostReform flags: PASS\n✅ Test 2 - Tax components zeroed in post-reform: PASS\n✅ Test 3 - Tax components active in current system: PASS\n✅ Test 4 - Meaningful difference between systems: PASS\n✅ Test 5 - Year-by-year continuity: PASS\n\n=== FINAL RESULT ===\n🎉 ALL TESTS PASSED - Integration successful!\n✅ Tax system toggle now works correctly\n✅ New calculator properly supports post-reform\n✅ Year-by-year breakdown maintains continuity\n✅ UI and test calculator are now consistent\n",
+      "duration": 53,
+      "command": "node test-final-integration.js",
+      "description": "Final Integration Tests",
+      "critical": true
+    },
+    {
+      "success": true,
+      "output": "=== SPECIFIC CASE DEBUG ===\nTesting with typical Swiss property parameters...\n\nCURRENT SYSTEM (2025-2027):\n  Decision: BUY\n  Result Value: CHF 765,062\n  PostReform flag: false\n\nPOST-REFORM SYSTEM (2027+):\n  Decision: BUY\n  Result Value: CHF 799,082\n  PostReform flag: true\n\nDIFFERENCE:\n  Post-Reform - Current: CHF 34,020\n  Percentage change: 4.45 %\n\nYEAR 1 TAX COMPONENTS:\n  Current System:\n    Imputed Rental Tax:    CHF 10,920\n    Interest Tax Savings:  CHF 5,040\n    Property Tax Savings:  CHF 4,200\n    Net Tax Difference:    CHF 1,680\n  Post-Reform System:\n    Imputed Rental Tax:    CHF 0\n    Interest Tax Savings:  CHF 0\n    Property Tax Savings:  CHF 0\n    Net Tax Difference:    CHF 0\n\nTOTAL TAX IMPACT:\n  Current system tax difference: CHF -7,403\n  Post-reform tax difference:    CHF -41,423\n\nBREAK-EVEN ANALYSIS:\n  If no difference is showing in UI, possible causes:\n  1. UI not properly reading taxSystem radio button\n  2. Calculation caching issue\n  3. Parameters with zero tax impact (e.g., zero tax rate)\n  4. Display rounding hiding small differences\n\nEDGE CASE - ZERO TAX RATE:\n  Zero tax - Current:    CHF 757,660\n  Zero tax - Post-Reform: CHF 757,660\n  Difference with zero tax: 0\n  (Should be 0 - no tax means no difference)\n\n=== END DEBUG ===\n",
+      "duration": 54,
+      "command": "node test-specific-case.js",
+      "description": "Specific Case Validation",
+      "critical": true
+    },
+    {
+      "success": true,
+      "output": "🧪 New Implementation Test Harness\nMoneyland parity check vs old: 8415/8415 match\nRandom comparisons vs old: all match within tolerance\n",
+      "duration": 136,
+      "command": "node test-new-implementation.js",
+      "description": "New Implementation Validation (8415 cases)",
+      "critical": true
+    },
+    {
+      "success": true,
+      "output": "🧮 Swiss Rent vs Buy Calculator - Backend Validation Test\n============================================================\n📂 Loading test data from: /Users/roland.faustlin/Documents/Syncthing/towerSync/MortgageMoneylandParamSweep/swiss-rent-buy-calculator/output-002.csv\n✅ Loaded 8415 test cases from moneyland.ch data\n\n🔍 Running validation tests...\n\n✅ Test 1: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0% yield\n   Result: BUY +CHF 472,454\n   vs ML:  BUY +CHF 472,454\n\n✅ Test 2: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0% yield\n   Result: BUY +CHF 574,735\n   vs ML:  BUY +CHF 574,735\n\n✅ Test 3: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0% yield\n   Result: BUY +CHF 681,699\n   vs ML:  BUY +CHF 681,699\n\n✅ Test 4: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0% yield\n   Result: BUY +CHF 793,536\n   vs ML:  BUY +CHF 793,536\n\n✅ Test 5: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0% yield\n   Result: BUY +CHF 910,443\n   vs ML:  BUY +CHF 910,443\n\n✅ Test 6: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0.5% yield\n   Result: BUY +CHF 460,032\n   vs ML:  BUY +CHF 460,032\n\n✅ Test 7: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0.5% yield\n   Result: BUY +CHF 562,313\n   vs ML:  BUY +CHF 562,313\n\n✅ Test 8: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0.5% yield\n   Result: BUY +CHF 669,277\n   vs ML:  BUY +CHF 669,277\n\n✅ Test 9: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0.5% yield\n   Result: BUY +CHF 781,114\n   vs ML:  BUY +CHF 781,114\n\n✅ Test 10: PASSED\n   Parameters: CHF 2,000,000, 0.9% mortgage, 0.5% yield\n   Result: BUY +CHF 898,021\n   vs ML:  BUY +CHF 898,021\n\n✅ Progress: 1000 tests completed (1000 passed, 0 failed)\n✅ Progress: 2000 tests completed (2000 passed, 0 failed)\n✅ Progress: 3000 tests completed (3000 passed, 0 failed)\n✅ Progress: 4000 tests completed (4000 passed, 0 failed)\n✅ Progress: 5000 tests completed (5000 passed, 0 failed)\n✅ Progress: 6000 tests completed (6000 passed, 0 failed)\n✅ Progress: 7000 tests completed (7000 passed, 0 failed)\n✅ Progress: 8000 tests completed (8000 passed, 0 failed)\n📊 VALIDATION SUMMARY\n========================================\nTotal Tests:     8415\nPassed Tests:    8415 (100.0%)\nFailed Tests:    0 (0.0%)\n\n🎯 ACCURACY ANALYSIS (Passed Tests):\n   Average Absolute Error: CHF 0.02\n   Maximum Absolute Error: CHF 0.05\n   Average Relative Error: 0.0000%\n   Accuracy: 100.0000%\n\n🎉 ALL TESTS PASSED! 🎉\n\n🔧 ADDITIONAL TEST: AUTO-CALCULATION VALIDATION\n────────────────────────────────────────────────────────────\n❌ Auto-calculation test error: Cannot find module './test-complete-auto-calculations.js'\nRequire stack:\n- /Users/roland.faustlin/Documents/Syncthing/towerSync/MortgageMoneylandParamSweep/swiss-rent-buy-calculator/backend-validation-test.js\n",
+      "duration": 117,
+      "command": "node backend-validation-test.js",
+      "description": "Backend Validation Test Suite",
+      "critical": true
+    }
+  ],
+  "ui": [
+    {
+      "success": true,
+      "output": "\nRunning 2 tests using 2 workers\n\n\u001b[1A\u001b[2K[1/2] [chromium] › test-frontend-yearbyyear.spec.js:22:3 › Year-by-Year UI interactions › Advanced toggle re-renders columns\n\u001b[1A\u001b[2K[2/2] [chromium] › test-frontend-yearbyyear.spec.js:11:3 › Year-by-Year UI interactions › Jump to break-even scrolls to row\n\u001b[1A\u001b[2K  2 passed (722ms)\n",
+      "duration": 1273,
+      "command": "npx playwright test test-frontend-yearbyyear.spec.js --reporter=line",
+      "description": "Frontend Year-by-Year Tests",
+      "critical": false
+    },
+    {
+      "success": true,
+      "output": "\nRunning 13 tests using 8 workers\n\n\u001b[1A\u001b[2K[1/13] [chromium] › test-chart-functionality.spec.js:79:3 › Chart Functionality Tests › Chart canvas exists and initializes\n\u001b[1A\u001b[2K[2/13] [chromium] › test-chart-functionality.spec.js:95:3 › Chart Functionality Tests › Chart updates after calculation\n\u001b[1A\u001b[2K[3/13] [chromium] › test-chart-functionality.spec.js:35:3 › Chart Functionality Tests › Chart section can be expanded and collapsed\n\u001b[1A\u001b[2K[4/13] [chromium] › test-chart-functionality.spec.js:173:3 › Chart Functionality Tests › Export chart button is clickable\n\u001b[1A\u001b[2K[5/13] [chromium] › test-chart-functionality.spec.js:129:3 › Chart Functionality Tests › Line toggles can be interacted with\n\u001b[1A\u001b[2K[6/13] [chromium] › test-chart-functionality.spec.js:51:3 › Chart Functionality Tests › Chart controls are present and functional\n\u001b[1A\u001b[2K[7/13] [chromium] › test-chart-functionality.spec.js:24:3 › Chart Functionality Tests › Chart section exists and is initially expanded\n\u001b[1A\u001b[2K[8/13] [chromium] › test-chart-functionality.spec.js:156:3 › Chart Functionality Tests › Reset zoom button is clickable\n\u001b[1A\u001b[2K[9/13] [chromium] › test-chart-functionality.spec.js:191:3 › Chart Functionality Tests › Chart settings interface works\n\u001b[1A\u001b[2K[10/13] [chromium] › test-chart-functionality.spec.js:218:3 › Chart Functionality Tests › Chart works with different calculation modes\n\u001b[1A\u001b[2K[11/13] [chromium] › test-chart-functionality.spec.js:237:3 › Chart Functionality Tests › Chart accessibility and usability\n\u001b[1A\u001b[2K[12/13] [chromium] › test-chart-functionality.spec.js:263:3 › Chart Functionality Tests › Chart handles longer calculation periods\n\u001b[1A\u001b[2K[13/13] [chromium] › test-chart-functionality.spec.js:283:3 › Chart Functionality Tests › Chart displays actual calculation data\n\u001b[1A\u001b[2K  13 passed (10.7s)\n",
+      "duration": 11202,
+      "command": "npx playwright test test-chart-functionality.spec.js --reporter=line",
+      "description": "Chart Functionality Tests",
+      "critical": false
+    },
+    {
+      "success": true,
+      "output": "\nRunning 4 tests using 4 workers\n\n\u001b[1A\u001b[2K[1/4] [chromium] › test-console-errors.spec.js:184:3 › Console Error Detection › Report console warnings (informational)\n\u001b[1A\u001b[2K[2/4] [chromium] › test-console-errors.spec.js:44:3 › Console Error Detection › No console errors on initial page load\n\u001b[1A\u001b[2K[3/4] [chromium] › test-console-errors.spec.js:62:3 › Console Error Detection › No console errors during basic UI interactions\n\u001b[1A\u001b[2K[4/4] [chromium] › test-console-errors.spec.js:137:3 › Console Error Detection › No console errors during chart interactions\n\u001b[1A\u001b[2K  4 passed (3.0s)\n",
+      "duration": 3530,
+      "command": "npx playwright test test-console-errors.spec.js --reporter=line",
+      "description": "Console Error Detection Tests",
+      "critical": true
+    }
+  ],
+  "performance": [
+    {
+      "success": true,
+      "output": "100 calculations in 11 ms\n",
+      "duration": 71,
+      "command": "node -e \"const calc = require('./calculator.js'); const start = Date.now(); for(let i=0; i<100; i++) { calc.calculate({purchasePrice: 1400000, downPayment: 280000, mortgageRate: 0.02, monthlyRent: 4000, termYears: 15, scenarioMode: 'equalConsumption'}); } console.log('100 calculations in', Date.now() - start, 'ms');\"",
+      "description": "Calculation Performance (100 iterations)",
+      "critical": false
+    }
+  ],
+  "errors": []
+}
