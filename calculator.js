@@ -85,7 +85,9 @@ class SwissRentBuyCalculator {
             // Comparison scenario mode:
             // 'equalConsumption' (baseline), 'cashflowParity' (invest actual monthly difference),
             // or 'equalSavings' (amortization-equivalent contributions)
-            scenarioMode = 'equalConsumption'
+            scenarioMode = 'equalConsumption',
+            // Post-reform tax system (2027+): no Eigenmietwert, no deductions for primary residence
+            postReform = false
         } = params;
 
         // ============================================================================
@@ -252,21 +254,21 @@ class SwissRentBuyCalculator {
         
         // Calculate year-by-year tax differences and add to yearly breakdown
         for (let year = 0; year < termYears; year++) {
-            // Annual mortgage interest (tax-deductible for homeowners)
+            // Annual mortgage interest (tax-deductible for homeowners in current system only)
             // Calculate if mortgage exists (interest continues even after amortization period)
             let annualInterest = 0;
             if (remainingMortgage > 0) {
                 annualInterest = remainingMortgage * mortgageRate;
             }
-            const annualTaxSavingsInterest = annualInterest * marginalTaxRate;
+            const annualTaxSavingsInterest = postReform ? 0 : (annualInterest * marginalTaxRate);
             
-            // Imputed rental value (taxable income for homeowners)
+            // Imputed rental value (taxable income for homeowners in current system only)
             // Swiss tax authorities assess this as the benefit of living in your own property
-            const annualTaxCostImputedRental = imputedRentalValue * marginalTaxRate;
+            const annualTaxCostImputedRental = postReform ? 0 : (imputedRentalValue * marginalTaxRate);
             
-            // Property expenses (tax-deductible for homeowners)
+            // Property expenses (tax-deductible for homeowners in current system only)
             // Includes maintenance, insurance, property management
-            const annualTaxSavingsPropertyExpenses = propertyTaxDeductions * marginalTaxRate;
+            const annualTaxSavingsPropertyExpenses = postReform ? 0 : (propertyTaxDeductions * marginalTaxRate);
             
             // Net annual tax difference: buying vs renting
             // Positive value means buying costs more in taxes
@@ -371,7 +373,7 @@ class SwissRentBuyCalculator {
             
             // Property value & equity at end of this year
             const propertyValueCurrentYear = purchasePrice * Math.pow(1 + propertyAppreciationRate, yearsToDate);
-            const homeownerTaxThisYear = (imputedRentalValue * marginalTaxRate) - (yearData.annualInterest * marginalTaxRate) - (propertyTaxDeductions * marginalTaxRate);
+            const homeownerTaxThisYear = postReform ? 0 : ((imputedRentalValue * marginalTaxRate) - (yearData.annualInterest * marginalTaxRate) - (propertyTaxDeductions * marginalTaxRate));
             const buyAnnualCashOutlay = yearData.annualInterest + yearData.annualMaintenance + homeownerTaxThisYear;
             const rentAnnualCashOutlay = yearData.annualRent + yearData.annualRentalCosts + investmentIncomeTaxThisYear;
             const netMonthlyDiffThisYear = (buyAnnualCashOutlay - rentAnnualCashOutlay) / 12;
@@ -569,6 +571,7 @@ class SwissRentBuyCalculator {
             MortgageAmount: Math.round(mortgageAmount),
             YearlyBreakdown: yearlyBreakdown,
             ScenarioMode: scenarioMode,
+            PostReform: postReform,
             ErrorMsg: null
         };
     }
@@ -725,7 +728,9 @@ class SwissRentBuyCalculator {
             
             // Generate all values in range with specified step size
             for (let value = range.min; value <= range.max; value += range.step) {
-                const newParams = { ...params, [key]: value };
+                // Special handling for boolean parameters
+                const paramValue = (key === 'postReform') ? Boolean(value) : value;
+                const newParams = { ...params, [key]: paramValue };
                 // Recursively process next parameter
                 generateCombinations(newParams, keyIndex + 1);
             }

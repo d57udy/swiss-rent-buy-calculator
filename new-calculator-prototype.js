@@ -27,7 +27,8 @@ function calculateNew(params) {
         annualRentalCosts = 20000,
         investmentYieldRate = 0.00,
         termYears = 10,
-        scenarioMode = 'equalConsumption'
+        scenarioMode = 'equalConsumption',
+        postReform = false
     } = params;
 
     const mortgageAmount = purchasePrice - downPayment;
@@ -59,10 +60,11 @@ function calculateNew(params) {
         amortizationCosts += amort;
         remainingBalance = Math.max(0, remainingBalance - amort);
 
-        // Owner taxes (owner side only)
-        const ownerNetTax = (imputedRentalValue * marginalTaxRate)
-            - (interest * marginalTaxRate)
-            - (propertyTaxDeductions * marginalTaxRate);
+        // Owner taxes (owner side only) - apply post-reform logic
+        const taxImputedRent = postReform ? 0 : (imputedRentalValue * marginalTaxRate);
+        const taxSavingsInterest = postReform ? 0 : (interest * marginalTaxRate);
+        const taxSavingsPropertyExpenses = postReform ? 0 : (propertyTaxDeductions * marginalTaxRate);
+        const ownerNetTax = taxImputedRent - taxSavingsInterest - taxSavingsPropertyExpenses;
         totalOwnerNetTax += ownerNetTax;
 
         // Renter contributions (mode-aware)
@@ -103,9 +105,9 @@ function calculateNew(params) {
             annualRent: rent,
             annualRentalCosts: supp,
             annualTaxDifference: ownerNetTax, // owner net tax only
-            taxImputedRent: imputedRentalValue * marginalTaxRate,
-            taxSavingsInterest: interest * marginalTaxRate,
-            taxSavingsPropertyExpenses: propertyTaxDeductions * marginalTaxRate,
+            taxImputedRent: taxImputedRent,
+            taxSavingsInterest: taxSavingsInterest,
+            taxSavingsPropertyExpenses: taxSavingsPropertyExpenses,
             renterContribution: renterContrib,
             cumulativeRenterPrincipal: cumulativeContribPrincipal,
             investmentGainsThisYear: gains,
@@ -225,6 +227,7 @@ function calculateNew(params) {
         CompareText: compareText,
         ResultValue: resultValue,
         Decision: decision,
+        PostReform: postReform,
 
         InterestCosts: interestCosts,
         SupplementalMaintenanceCosts: supplementalMaintenanceCosts,

@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Verification - Post Reform Toggle</title>
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { border: 1px solid #ccc; padding: 15px; margin: 15px 0; border-radius: 8px; }
+        .current { border-left: 4px solid #007aff; }
+        .reform { border-left: 4px solid #34c759; }
+        button { background: #007aff; color: white; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; margin: 5px; }
+        button:hover { background: #0056cc; }
+        .result { background: #f8f9fa; padding: 10px; margin: 10px 0; border-radius: 4px; font-family: monospace; }
+        label { display: block; margin: 8px 0; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Fix Verification: Tax System Toggle</h1>
+    <p>This page verifies that the post-reform tax system toggle now works correctly and shows different results.</p>
+    
+    <div class="test-section">
+        <h3>Tax System Selection</h3>
+        <label>
+            <input type="radio" name="taxSystem" value="current" checked> Current System (2025-2027)
+        </label>
+        <label>
+            <input type="radio" name="taxSystem" value="postReform"> Post-Reform System (2027+)
+        </label>
+        
+        <button onclick="calculateAndShow()">Calculate & Show Results</button>
+        <button onclick="compareBothSystems()">Compare Both Systems Side-by-Side</button>
+    </div>
+    
+    <div id="results"></div>
+
+    <script src="calculator.js"></script>
+    <script>
+        // Test parameters - these should show clear differences between systems
+        const testParams = {
+            purchasePrice: 1200000,
+            downPayment: 240000,
+            mortgageRate: 0.018,
+            annualMaintenanceCosts: 15000,
+            amortizationYears: 10,
+            annualAmortization: 19200,
+            totalRenovations: 0,
+            additionalPurchaseCosts: 24000,
+            imputedRentalValue: 26000,  // This should be zeroed in post-reform
+            propertyTaxDeductions: 12000, // This should be zeroed in post-reform
+            marginalTaxRate: 0.26,
+            propertyAppreciationRate: 0.02,
+            monthlyRent: 3300,
+            annualRentalCosts: 6000,
+            investmentYieldRate: 0.035,
+            termYears: 15,
+            scenarioMode: 'equalConsumption'
+        };
+        
+        function calculateAndShow() {
+            const taxSystemValue = document.querySelector('input[name="taxSystem"]:checked').value;
+            const postReform = taxSystemValue === 'postReform';
+            
+            const result = SwissRentBuyCalculator.calculate({
+                ...testParams,
+                postReform: postReform
+            });
+            
+            const systemName = postReform ? 'Post-Reform System (2027+)' : 'Current System (2025-2027)';
+            
+            document.getElementById('results').innerHTML = `
+                <div class="test-section ${postReform ? 'reform' : 'current'}">
+                    <h3>${systemName}</h3>
+                    <div class="result">
+                        <strong>Decision:</strong> ${result.Decision}<br>
+                        <strong>Financial Impact:</strong> CHF ${Math.round(result.ResultValue).toLocaleString()}<br>
+                        <strong>PostReform Flag:</strong> ${result.PostReform}<br>
+                        <br>
+                        <strong>Year 1 Tax Components:</strong><br>
+                        • Imputed Rental Tax: CHF ${Math.round(result.YearlyBreakdown[0].taxImputedRent).toLocaleString()}<br>
+                        • Interest Tax Savings: CHF ${Math.round(result.YearlyBreakdown[0].taxSavingsInterest).toLocaleString()}<br>
+                        • Property Tax Savings: CHF ${Math.round(result.YearlyBreakdown[0].taxSavingsPropertyExpenses).toLocaleString()}<br>
+                        • Net Tax Difference: CHF ${Math.round(result.YearlyBreakdown[0].annualTaxDifference).toLocaleString()}
+                    </div>
+                </div>
+            `;
+        }
+        
+        function compareBothSystems() {
+            const currentResult = SwissRentBuyCalculator.calculate({ ...testParams, postReform: false });
+            const postReformResult = SwissRentBuyCalculator.calculate({ ...testParams, postReform: true });
+            
+            const difference = postReformResult.ResultValue - currentResult.ResultValue;
+            
+            document.getElementById('results').innerHTML = `
+                <div class="test-section current">
+                    <h3>Current System (2025-2027)</h3>
+                    <div class="result">
+                        Decision: ${currentResult.Decision} | Value: CHF ${Math.round(currentResult.ResultValue).toLocaleString()}<br>
+                        Imputed Tax: CHF ${Math.round(currentResult.YearlyBreakdown[0].taxImputedRent).toLocaleString()} | 
+                        Interest Savings: CHF ${Math.round(currentResult.YearlyBreakdown[0].taxSavingsInterest).toLocaleString()} | 
+                        Property Savings: CHF ${Math.round(currentResult.YearlyBreakdown[0].taxSavingsPropertyExpenses).toLocaleString()}
+                    </div>
+                </div>
+                
+                <div class="test-section reform">
+                    <h3>Post-Reform System (2027+)</h3>
+                    <div class="result">
+                        Decision: ${postReformResult.Decision} | Value: CHF ${Math.round(postReformResult.ResultValue).toLocaleString()}<br>
+                        Imputed Tax: CHF ${Math.round(postReformResult.YearlyBreakdown[0].taxImputedRent).toLocaleString()} | 
+                        Interest Savings: CHF ${Math.round(postReformResult.YearlyBreakdown[0].taxSavingsInterest).toLocaleString()} | 
+                        Property Savings: CHF ${Math.round(postReformResult.YearlyBreakdown[0].taxSavingsPropertyExpenses).toLocaleString()}
+                    </div>
+                </div>
+                
+                <div class="test-section" style="border-left: 4px solid #ff9500; background: #fff8e1;">
+                    <h3>Difference Analysis</h3>
+                    <div class="result">
+                        <strong>Post-Reform makes buying CHF ${Math.round(Math.abs(difference)).toLocaleString()} ${difference > 0 ? 'MORE' : 'LESS'} attractive</strong><br>
+                        Percentage change: ${((difference / Math.abs(currentResult.ResultValue)) * 100).toFixed(2)}%<br>
+                        <br>
+                        ✅ <strong>Tax components properly zeroed:</strong><br>
+                        • Imputed rental tax eliminated: ${postReformResult.YearlyBreakdown[0].taxImputedRent === 0 ? '✅ YES' : '❌ NO'}<br>
+                        • Interest deductions eliminated: ${postReformResult.YearlyBreakdown[0].taxSavingsInterest === 0 ? '✅ YES' : '❌ NO'}<br>
+                        • Property deductions eliminated: ${postReformResult.YearlyBreakdown[0].taxSavingsPropertyExpenses === 0 ? '✅ YES' : '❌ NO'}<br>
+                        <br>
+                        <strong>Fix Status:</strong> ${difference !== 0 ? '✅ WORKING - Toggle shows different results' : '❌ BROKEN - No difference detected'}
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Automatically run comparison on page load to show the fix works
+        window.onload = function() {
+            compareBothSystems();
+        };
+    </script>
+</body>
+</html>
